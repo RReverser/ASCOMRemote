@@ -473,9 +473,7 @@ paths:
     get:
       summary: Returns the camera operational state.
       description: >-
-        Returns the current camera operational state as an integer. 0 =
-        CameraIdle , 1 = CameraWaiting , 2 = CameraExposing , 3 = CameraReading
-        , 4 = CameraDownload , 5 = CameraError
+        Returns the current camera operational state.
       parameters:
         - $ref: '#/components/parameters/device_number'
         - $ref: '#/components/parameters/ClientIDQuery'
@@ -484,7 +482,7 @@ paths:
         - Camera Specific Methods
       responses:
         '200':
-          $ref: '#/components/responses/IntResponse'
+          $ref: '#/components/responses/CameraStateResponse'
         '400':
           $ref: '#/components/responses/400'
         '500':
@@ -1691,22 +1689,7 @@ paths:
         colour)
       description: >
         Returns a value indicating whether the sensor is monochrome, or what
-        Bayer matrix it encodes. Where:
-
-        - 0 = Monochrome,
-
-        - 1 = Colour not requiring Bayer decoding
-
-        - 2 = RGGB Bayer encoding
-
-        - 3 = CMYG Bayer encoding
-
-        - 4 = CMYG2 Bayer encoding
-
-        - 5 = LRGB TRUESENSE Bayer encoding.
-
-
-        Please see the ASCOM Help fie for more informaiton on the SensorType.
+        Bayer matrix it encodes.
       parameters:
         - $ref: '#/components/parameters/device_number'
         - $ref: '#/components/parameters/ClientIDQuery'
@@ -1715,7 +1698,7 @@ paths:
         - Camera Specific Methods
       responses:
         '200':
-          $ref: '#/components/responses/IntResponse'
+          $ref: '#/components/responses/SensorTypeResponse'
         '400':
           $ref: '#/components/responses/400'
         '500':
@@ -1940,23 +1923,7 @@ paths:
         '500':
           $ref: '#/components/responses/500'
       requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              allOf:
-                - $ref: '#/components/schemas/AlpacaRequest'
-                - properties:
-                    Direction:
-                      description: 'Direction of movement (0 = North, 1 = South, 2 = East, 3 = West)'
-                      type: integer
-                      format: int32
-                    Duration:
-                      description: Duration of movement in milli-seconds
-                      type: integer
-                      format: int32
-                  required:
-                    - Direction
-                    - Duration
+        $ref: '#/components/requestBodies/putPulseGuide'
   '/camera/{device_number}/startexposure':
     put:
       summary: Starts an exposure
@@ -2405,8 +2372,7 @@ paths:
     get:
       summary: Status of the dome shutter or roll-off roof
       description: >-
-        Returns the status of the dome shutter or roll-off roof. 0 = Open, 1 =
-        Closed, 2 = Opening, 3 = Closing, 4 = Shutter status error
+        Returns the status of the dome shutter or roll-off roof.
       parameters:
         - $ref: '#/components/parameters/device_number'
         - $ref: '#/components/parameters/ClientIDQuery'
@@ -2415,7 +2381,7 @@ paths:
         - Dome Specific Methods
       responses:
         '200':
-          $ref: '#/components/responses/IntResponse'
+          $ref: '#/components/responses/DomeShutterStatusResponse'
         '400':
           $ref: '#/components/responses/400'
         '500':
@@ -4685,9 +4651,7 @@ paths:
   '/telescope/{device_number}/sideofpier':
     get:
       summary: Returns the mount's pointing state.
-      description: >-
-        Indicates the pointing state of the mount. 0 = pierEast, 1 = pierWest,
-        -1= pierUnknown
+      description: Indicates the pointing state of the mount.
       parameters:
         - $ref: '#/components/parameters/device_number'
         - $ref: '#/components/parameters/ClientIDQuery'
@@ -4696,14 +4660,14 @@ paths:
         - Telescope Specific Methods
       responses:
         '200':
-          $ref: '#/components/responses/IntResponse'
+          $ref: '#/components/responses/SideOfPierResponse'
         '400':
           $ref: '#/components/responses/400'
         '500':
           $ref: '#/components/responses/500'
     put:
       summary: Sets the mount's pointing state.
-      description: 'Sets the pointing state of the mount. 0 = pierEast, 1 = pierWest'
+      description: Sets the pointing state of the mount.
       parameters:
         - $ref: '#/components/parameters/device_number'
       tags:
@@ -4726,6 +4690,15 @@ paths:
                       description: New pointing state.
                       type: integer
                       format: int32
+                      enum:
+                        - 0
+                        - 1
+                      x-enum-varnames:
+                        - East
+                        - West
+                      x-enum-descriptions:
+                      - Normal pointing state - Mount on the East side of pier (looking West).
+                      - Through the pole pointing state - Mount on the West side of pier (looking East).
                   required:
                     - SideOfPier
   '/telescope/{device_number}/siderealtime':
@@ -5110,8 +5083,7 @@ paths:
     put:
       summary: Sets the mount's tracking rate.
       description: >-
-        Sets the tracking rate of the telescope's sidereal drive. 0 =
-        driveSidereal, 1 = driveLunar, 2 = driveSolar, 3 = driveKing
+        Sets the tracking rate of the telescope's sidereal drive.
       parameters:
         - $ref: '#/components/parameters/device_number'
       tags:
@@ -5127,15 +5099,20 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-              allOf:
-                - $ref: '#/components/schemas/AlpacaRequest'
-                - properties:
-                    TrackingRate:
-                      description: New tracking rate
-                      type: integer
-                      format: int32
-                  required:
-                    - TrackingRate
+              type: object
+              properties:
+                TrackingRate:
+                  $ref: '#/components/schemas/DriveRate'
+                ClientID:
+                  description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
+                  type: integer
+                  format: uint32
+                ClientTransactionID:
+                  description: Client's transaction ID. (0 to 4294967295). The client should start this count at 1 and increment by one on each successive transaction. This will aid associating entries in device logs with corresponding entries in client side logs.
+                  type: integer
+                  format: uint32
+              required:
+                - TrackingRate
   '/telescope/{device_number}/trackingrates':
     get:
       summary: Returns a collection of supported DriveRates values.
@@ -5272,8 +5249,7 @@ paths:
         given coordinates.
       description: >-
         Predicts the pointing state that a German equatorial mount will be in if
-        it slews to the given coordinates. The  return value will be one of - 0
-        = pierEast, 1 = pierWest, -1 = pierUnknown
+        it slews to the given coordinates.
       parameters:
         - $ref: '#/components/parameters/device_number'
         - $ref: '#/components/parameters/RightAscensionQuery'
@@ -5284,7 +5260,7 @@ paths:
         - Telescope Specific Methods
       responses:
         '200':
-          $ref: '#/components/responses/IntResponse'
+          $ref: '#/components/responses/SideOfPierResponse'
         '400':
           $ref: '#/components/responses/400'
         '500':
@@ -5325,24 +5301,25 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-              allOf:
-                - $ref: '#/components/schemas/AlpacaRequest'
-                - properties:
-                    Axis:
-                      description: >-
-                        The axis about which rate information is desired. 0 = axisPrimary, 1 =
-                        axisSecondary, 2 = axisTertiary.
-                      type: integer
-                      default: 0
-                      minimum: 0
-                      maximum: 2
-                    Rate:
-                      description: The rate of motion (deg/sec) about the specified axis
-                      type: number
-                      default: 0
-                  required:
-                    - Axis
-                    - Rate
+              type: object
+              properties:
+                Axis:
+                  $ref: '#/components/schemas/Axis'
+                Rate:
+                  description: The rate of motion (deg/sec) about the specified axis
+                  type: number
+                  default: 0
+                ClientID:
+                  description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
+                  type: integer
+                  format: uint32
+                ClientTransactionID:
+                  description: Client's transaction ID. (0 to 4294967295). The client should start this count at 1 and increment by one on each successive transaction. This will aid associating entries in device logs with corresponding entries in client side logs.
+                  type: integer
+                  format: uint32
+              required:
+                - Axis
+                - Rate
   '/telescope/{device_number}/park':
     put:
       summary: Park the mount
@@ -5380,27 +5357,7 @@ paths:
         '500':
           $ref: '#/components/responses/500'
       requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              allOf:
-                - $ref: '#/components/schemas/AlpacaRequest'
-                - properties:
-                    Direction:
-                      description: >-
-                        The direction in which the guide-rate motion is to be made. 0 =
-                        guideNorth, 1 = guideSouth, 2 = guideEast, 3 = guideWest
-                      type: integer
-                      format: int32
-                      default: 0
-                    Duration:
-                      description: The duration of the guide-rate motion (milliseconds)
-                      type: integer
-                      format: int32
-                      default: 5
-                  required:
-                    - Direction
-                    - Duration
+        $ref: '#/components/requestBodies/putPulseGuide'
   '/telescope/{device_number}/setpark':
     put:
       summary: Sets the telescope's park position
@@ -5680,17 +5637,10 @@ components:
         maximum: 90.0
     AxisQuery:
       name: Axis
-      description: >-
-        The axis about which rate information is desired. 0 = axisPrimary, 1 =
-        axisSecondary, 2 = axisTertiary.
       in: query
       required: true
       schema:
-        type: integer
-        format: int32
-        default: 0
-        minimum: 0
-        maximum: 2
+        $ref: '#/components/schemas/Axis'
     SwitchNumberQuery:
       name: Id
       description: The device number (0 to MaxSwitch - 1)
@@ -5772,6 +5722,37 @@ components:
                 required:
                   - RightAscension
                   - Declination
+    putPulseGuide:
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/AlpacaRequest'
+              - properties:
+                  Direction:
+                    description: >-
+                      The direction in which the guide-rate motion is to be made.
+                    type: integer
+                    format: int32
+                    default: 0
+                    enum:
+                      - 0
+                      - 1
+                      - 2
+                      - 3
+                    x-enum-varnames:
+                      - North
+                      - South
+                      - East
+                      - West
+                  Duration:
+                    description: The duration of the guide-rate motion (milliseconds)
+                    type: integer
+                    format: int32
+                    default: 5
+                required:
+                  - Direction
+                  - Duration
   responses:
     MethodResponse:
       description: Transaction complete or exception.
@@ -5790,17 +5771,27 @@ components:
                   Type:
                     type: integer
                     format: int32
-                    description: >-
-                      0 = Unknown, 1 = Short(int16), 2 = Integer (int32), 3 = Double (Double
-                      precision real number).
-                    minimum: 0
-                    maximum: 3
+                    enum:
+                      - 0
+                      - 1
+                      - 2
+                      - 3
+                    x-enum-varnames:
+                      - Unknown
+                      - Short
+                      - Integer
+                      - Double
+                    x-enum-descriptions:
+                      - 
+                      - int16
+                      - int32
+                      - Double precision real number
                   Rank:
                     type: integer
                     format: int32
-                    description: >-
-                      The array's rank, will be 2 (single plane image (monochrome)) or 3
-                      (multi-plane image).
+                    description: The array's rank, will be 2 (single plane image (monochrome)) or 3 (multi-plane image).
+                    minimum: 2
+                    maximum: 3
                   Value:
                     type: array
                     items:
@@ -5843,6 +5834,113 @@ components:
                     type: integer
                     format: int32
                     description: Returned integer value
+    CameraStateResponse:
+      description: Transaction complete or exception.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/AlpacaResponse'
+              - properties:
+                  Value:
+                    type: integer
+                    format: int32
+                    description: Returned camera state
+                    enum:
+                      - 0
+                      - 1
+                      - 2
+                      - 3
+                      - 4
+                      - 5
+                    x-enum-varnames:
+                      - Idle
+                      - Waiting
+                      - Exposing
+                      - Reading
+                      - Download
+                      - Error
+    SensorTypeResponse:
+      description: Transaction complete or exception.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/AlpacaResponse'
+              - properties:
+                  Value:
+                    type: integer
+                    format: int32
+                    description: Returned sensor type
+                    enum:
+                      - 0
+                      - 1
+                      - 2
+                      - 3
+                      - 4
+                      - 5
+                    x-enum-varnames:
+                      - Monochrome
+                      - Color
+                      - RGGB
+                      - CMYG
+                      - CMYG2
+                      - LRGB
+                    x-enum-descriptions:
+                      - Camera produces monochrome array with no Bayer encoding
+                      - Camera produces color image directly, not requiring Bayer decoding
+                      - Camera produces RGGB encoded Bayer array images
+                      - Camera produces CMYG encoded Bayer array images
+                      - Camera produces CMYG2 encoded Bayer array images
+                      - Camera produces Kodak TRUESENSE LRGB encoded Bayer array images
+    DomeShutterStatusResponse:
+      description: Transaction complete or exception.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/AlpacaResponse'
+              - properties:
+                  Value:
+                    type: integer
+                    format: int32
+                    description: Returned dome shutter status
+                    enum:
+                      - 0
+                      - 1
+                      - 2
+                      - 3
+                      - 4
+                    x-enum-varnames:
+                      - Open
+                      - Closed
+                      - Opening
+                      - Closing
+                      - Error
+    SideOfPierResponse:
+      description: Transaction complete or exception.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/AlpacaResponse'
+              - properties:
+                  Value:
+                    type: integer
+                    format: int32
+                    description: Returned side of pier
+                    enum:
+                      - 0
+                      - 1
+                      - -1
+                    x-enum-varnames:
+                      - East
+                      - West
+                      - Unknown
+                    x-enum-descriptions:
+                      - Normal pointing state - Mount on the East side of pier (looking West).
+                      - Through the pole pointing state - Mount on the West side of pier (looking East).
+                      - Unknown or indeterminate.
     IntArrayResponse:
       description: Transaction complete or exception.
       content:
@@ -5977,12 +6075,34 @@ components:
           description: Empty string for a successful transaction, or a message describing the issue that was encountered. If an error message is returned, a non zero error number must also be returned.
     DriveRate:
       description: >-
-        DriveRate object corresponding to one of the standard drive rates
-          driveSidereal =  0  - Sidereal tracking rate (15.041 arcseconds per second).  
-          driveLunar = 1 - Lunar tracking rate (14.685 arcseconds per second).  
-          driveSolar = 2 - Solar tracking rate (15.0 arcseconds per second).  
-          driveKing = 3 - King tracking rate (15.0369 arcseconds per second).  
+        DriveRate enum corresponding to one of the standard drive rates.
       type: integer
       format: int32
-      minimum: 0
-      maximum: 3
+      enum:
+        - 0
+        - 1
+        - 2
+        - 3
+      x-enum-varnames:
+        - Sidereal
+        - Lunar
+        - Solar
+        - King
+      x-enum-descriptions:
+        - 15.041 arcseconds per second
+        - 14.685 arcseconds per second
+        - 15.0 arcseconds per second
+        - 15.0369 arcseconds per second
+    Axis:
+      description: The axis of mount rotation.
+      type: integer
+      format: int32
+      default: 0
+      enum:
+        - 0
+        - 1
+        - 2
+      x-enum-varnames:
+        - Primary
+        - Secondary
+        - Tertiary
