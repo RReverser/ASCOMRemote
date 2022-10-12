@@ -4,7 +4,8 @@
   <head>
     <meta charset="UTF-8">
     <title>ASCOM Alpaca API</title>
-    <link rel="stylesheet" type="text/css" href="./swagger-ui.css" >
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@4.14.3/swagger-ui.css" >
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-plugin-enum-names@4.0.1/dist/index.css" />
     <link rel="icon" type="image/jpg" href="./Bug72T.jpg" sizes="32x32" />
     <link rel="icon" type="image/jpg" href="./Bug72T.jpg" sizes="16x16" />
 		<!-- ASCOM Customisation - Style -->
@@ -59,15 +60,16 @@
   <body>
     <div id="swagger-ui"></div>
 
-    <script src="./swagger-ui-bundle.js"> </script>
-    <script src="./swagger-ui-standalone-preset.js"> </script>
+    <script src="https://unpkg.com/swagger-ui-dist@4.14.3/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@4.14.3/swagger-ui-standalone-preset.js"> </script>
+    <script src="https://unpkg.com/swagger-ui-plugin-enum-names@4.0.1/dist/index.global.js"> </script>
     <script>
     window.onload = function() {
 		
         // Build a system
 				const ui = SwaggerUIBundle({
 				// ASCOM Customisation: original "url" line removed and replaced with "urls" line below
-        urls: [{url: "https://www.ascom-standards.org/api/AlpacaDeviceAPI_v1.yaml", name: "ASCOM Alpaca Device API"},{url: "https://www.ascom-standards.org/api/AlpacaManagementAPI_v1.yaml", name: "ASCOM Alpaca Management API"}],
+        urls: [{url: "AlpacaDeviceAPI_v1.yaml", name: "ASCOM Alpaca Device API"},{url: "AlpacaManagementAPI_v1.yaml", name: "ASCOM Alpaca Management API"}],
         dom_id: '#swagger-ui',
         deepLinking: true,
 				docExpansion: 'none',
@@ -79,7 +81,8 @@
           SwaggerUIStandalonePreset
         ],
         plugins: [
-          SwaggerUIBundle.plugins.DownloadUrl
+          SwaggerUIBundle.plugins.DownloadUrl,
+          EnumNamesPlugin.EnumNamesPlugin,
         ],
         layout: "StandaloneLayout"
       })
