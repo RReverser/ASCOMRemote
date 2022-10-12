@@ -14,31 +14,31 @@ info:
 
     The ASCOM Interface behavioural requirements for Alpaca drivers are the same as for COM based drivers and are documented in the
     <a href="https://ascom-standards.org/Help/Developer/html/N_ASCOM_DeviceInterface.htm">API Interface Definitions</a> e.g.
-    the <a href="https://ascom-standards.org/Help/Developer/html/M_ASCOM_DeviceInterface_ITelescopeV3_SlewToCoordinates.htm">Telescope.SlewToCoordinates</a> method.      
+    the <a href="https://ascom-standards.org/Help/Developer/html/M_ASCOM_DeviceInterface_ITelescopeV3_SlewToCoordinates.htm">Telescope.SlewToCoordinates</a> method.
     This document focuses on how to use the ASCOM Interface standards in their RESTful Alpaca form.
-    
+
     ## Alpaca URLs, Case Sensitivity, Parameters and Returned values
 
     **Alpaca Device API URLs** are of the form **http(s)://host:port/path** where path comprises **"/api/v1/"** followed by one of the method names below.
     e.g. for an Alpaca interface running on port 7843 of a device with IP address 192.168.1.89:
-    
+
     * A telescope "Interface Version" method URL would be **http://192.168.1.89:7843/api/v1/telescope/0/interfaceversion**
-        
+
     * A first focuser "Position" method URL would be  **http://192.168.1.89:7843/api/v1/focuser/0/position**
-        
+
     * A second focuser "StepSize" method URL would be  **http://192.168.1.89:7843/api/v1/focuser/1/stepsize**
 
     * A rotator "Halt" method URL would be  **http://192.168.1.89:7843/api/v1/rotator/0/halt**
-    
-    
-    
+
+
+
     URLs are case sensitive and all elements must be in lower case. This means that both the device type and command name must always be in lower case. Parameter names are not case sensitive, so clients and drivers should be prepared for parameter names to be supplied and returned with any casing. Parameter values can be in mixed case as required.
-    
-    
+
+
     For GET operations, parameters should be placed in the URL query string and for PUT operations they should be placed in the body of the message.
 
 
-    Responses, as described below, are returned in JSON format and always include a common set of values including the client's transaction number, 
+    Responses, as described below, are returned in JSON format and always include a common set of values including the client's transaction number,
     the server's transaction number together with any error message and error number.
 
     If the transaction completes successfully, the ErrorMessage field will be an empty string and the ErrorNumber field will be zero.
@@ -47,13 +47,13 @@ info:
     ## HTTP Status Codes and ASCOM Error codes
 
     The returned HTTP status code gives a high level view of whether the device understood the request and whether it attempted to process it.
-    
-    
+
+
     Under most circumstances the returned status will be `200`, indicating that the request was correctly formatted and that it was passed to the device's handler to execute.
     A `200` status does not necessarily mean that the operation completed as expected, without error, and you must always check the ErrorMessage and ErrorNumber fields to confirm
     whether the returned result is valid. The `200` status simply means that the transaction was successfully managed by the device's transaction management layer.
-    
-    
+
+
     An HTTP status code of `400` indicates that the device could not interpret the request e.g. an invalid device number or misspelt device type was supplied. Check the body of the response for a text error message.
 
 
@@ -62,8 +62,8 @@ info:
     ## SetupDialog and Alpaca Device Configuration
 
     The SetupDialog method has been omitted from the Alpaca Device API because it presents a user interface rather than returning data. Alpaca device configuration is covered in the "ASCOM Alpaca Management API" specification, which can be selected through the drop-down box at the head of this page.
-    
-    
+
+
 
 paths:
   '/{device_type}/{device_number}/action':
@@ -71,22 +71,22 @@ paths:
       summary: Invokes the named device-specific action.
       description:  >-
         Actions and SupportedActions are a standardised means for drivers to extend functionality beyond the built-in capabilities of the ASCOM device interfaces.
-        
-        
+
+
         The key advantage of using Actions is that drivers can expose any device specific functionality required. The downside is that, in order to use these unique features, every application author would need to create bespoke code to present or exploit them.
-        
-        
+
+
         The Action parameter and return strings are deceptively simple, but can support transmission of arbitrarily complex data structures, for example through JSON encoding.
-        
-        
+
+
         This capability will be of primary value to
          * <span style="font-size:14px;">bespoke software and hardware configurations where a single entity controls both the consuming application software and the hardware / driver environment</span>
          * <span style="font-size:14px;">a group of application and device authors to quickly formulate and try out new interface capabilities without requiring an immediate change to the ASCOM device interface, which will take a lot longer than just agreeing a name, input parameters and a standard response for an Action command.</span>
-        
-        
+
+
         The list of Action commands supported by a driver can be discovered through the SupportedActions property.
-        
-        
+
+
         This method should return an error message and NotImplementedException error number (0x400) if the driver just implements the standard ASCOM device methods and has no bespoke, unique, functionality.
       parameters:
         - $ref: '#/components/parameters/device_type'
@@ -100,6 +100,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StringResponse'
+              example:
+                Value: '4800.000484138727'
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -141,6 +147,11 @@ paths:
               required:
                 - Action
                 - Parameters
+            example:
+              Action: AvailableTimeInThisPointingState
+              Parameters: ''
+              ClientID: 1
+              ClientTransactionID: 1234
   '/{device_type}/{device_number}/commandblind':
     put:
       summary: Transmits an arbitrary string to the device
@@ -268,6 +279,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -297,6 +314,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -332,6 +354,10 @@ paths:
                   format: uint32
               required:
                 - Connected
+            example:
+              Connected: true
+              ClientID: 1
+              ClientTransactionID: 1234
   '/{device_type}/{device_number}/description':
     get:
       summary: Device description
@@ -350,6 +376,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StringResponse'
+              example:
+                Value: Software Telescope Simulator for ASCOM
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -382,6 +414,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StringResponse'
+              example:
+                Value: 'TelescopeSimulator, Version=0.1.4.0, Culture=neutral, PublicKeyToken=null'
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -414,6 +452,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StringResponse'
+              example:
+                Value: '0.1'
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -433,7 +477,7 @@ paths:
       summary: The ASCOM Device interface version number that this device supports.
       description: >-
         This method returns the version of the ASCOM device interface contract to which this device complies. Only one interface version is current at a moment in time and all
-        new devices should be built to the latest interface version. Applications can choose which device interface versions they support and it is in their interest to support 
+        new devices should be built to the latest interface version. Applications can choose which device interface versions they support and it is in their interest to support
         previous versions as well as the current version to ensure thay can use the largest number of devices.
       parameters:
         - $ref: '#/components/parameters/device_type'
@@ -449,6 +493,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 3
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -481,6 +531,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StringResponse'
+              example:
+                Value: Alpaca Telescope Sim
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -513,6 +569,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StringArrayResponse'
+              example:
+                Value:
+                  - AssemblyVersionNumber
+                  - SlewToHA
+                  - AvailableTimeInThisPointingState
+                  - TimeUntilPointingStateCanChange
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -544,6 +610,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read BayerOffsetX is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -575,6 +647,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read BayerOffsetY is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -606,6 +684,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 1
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -634,6 +718,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1025
+                ErrorMessage: BinX set - '0' is an invalid value. The valid range is: 1 to 4.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -658,7 +747,7 @@ paths:
                   description: The X binning value
                   type: integer
                   format: int32
-                  default: 1
+                  example: 1
                 ClientID:
                   description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
                   type: integer
@@ -669,6 +758,10 @@ paths:
                   format: uint32
               required:
                 - BinX
+            example:
+              BinX: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/camera/{device_number}/biny':
     get:
       summary: Returns the binning factor for the Y axis.
@@ -686,6 +779,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 1
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -714,6 +813,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1025
+                ErrorMessage: BinY set - '0' is an invalid value. The valid range is: 1 to 4.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -738,7 +842,7 @@ paths:
                   description: The Y binning value
                   type: integer
                   format: int32
-                  default: 1
+                  example: 1
                 ClientID:
                   description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
                   type: integer
@@ -749,6 +853,10 @@ paths:
                   format: uint32
               required:
                 - BinY
+            example:
+              BinY: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/camera/{device_number}/camerastate':
     get:
       summary: Returns the camera operational state.
@@ -769,6 +877,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -800,6 +914,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 800
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -831,6 +951,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 600
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -862,6 +988,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -893,6 +1025,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -924,6 +1062,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -955,6 +1099,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -986,6 +1136,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1021,6 +1177,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1056,6 +1218,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1087,6 +1255,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 10
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1118,6 +1292,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1146,6 +1326,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1169,7 +1354,7 @@ paths:
                 CoolerOn:
                   description: Cooler state
                   type: boolean
-                  default: true
+                  example: true
                 ClientID:
                   description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
                   type: integer
@@ -1180,6 +1365,10 @@ paths:
                   format: uint32
               required:
                 - CoolerOn
+            example:
+              CoolerOn: false
+              ClientID: 1
+              ClientTransactionID: 1234
   '/camera/{device_number}/coolerpower':
     get:
       summary: Returns the present cooler power level
@@ -1197,6 +1386,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1228,6 +1423,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0.8
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1259,6 +1460,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 3600
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1292,6 +1499,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0.001
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1327,6 +1540,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0.001
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1358,6 +1577,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read FastReadout is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1386,6 +1611,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read FastReadout is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1409,7 +1639,7 @@ paths:
                 FastReadout:
                   description: True to enable fast readout mode
                   type: boolean
-                  default: false
+                  example: false
                 ClientID:
                   description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
                   type: integer
@@ -1420,6 +1650,10 @@ paths:
                   format: uint32
               required:
                 - FastReadout
+            example:
+              FastReadout: false
+              ClientID: 1
+              ClientTransactionID: 1234
   '/camera/{device_number}/fullwellcapacity':
     get:
       summary: Reports the full well capacity of the camera
@@ -1439,6 +1673,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 30000
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1470,6 +1710,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read Gain is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1498,6 +1744,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read Gain is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1522,7 +1773,7 @@ paths:
                   description: Index of the current camera gain in the Gains string array.
                   type: integer
                   format: int32
-                  default: 0
+                  example: 0
                 ClientID:
                   description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
                   type: integer
@@ -1533,6 +1784,10 @@ paths:
                   format: uint32
               required:
                 - Gain
+            example:
+              Gain: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/camera/{device_number}/gainmax':
     get:
       summary: Maximum Gain value of that this camera supports
@@ -1550,6 +1805,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read GainMax is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1566,7 +1827,7 @@ paths:
                 description: Error message describing why the command cannot be processed
   '/camera/{device_number}/gainmin':
     get:
-      summary: Minimum Gain value of that this camera supports 
+      summary: Minimum Gain value of that this camera supports
       description: Returns the Minimum value of Gain.
       parameters:
         - $ref: '#/components/parameters/device_number'
@@ -1581,6 +1842,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read GainMax is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1597,7 +1864,7 @@ paths:
                 description: Error message describing why the command cannot be processed
   '/camera/{device_number}/gains':
     get:
-      summary: List of Gain names supported by the camera 
+      summary: List of Gain names supported by the camera
       description: Returns the Gains supported by the camera.
       parameters:
         - $ref: '#/components/parameters/device_number'
@@ -1612,6 +1879,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StringArrayResponse'
+              example:
+                Value: []
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read Gains is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1644,6 +1917,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1677,6 +1956,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read HeatSinkTemperature is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1696,62 +1981,62 @@ paths:
       summary: Returns an array of integers containing the exposure pixel values
       description: >
         Returns an array of 32bit integers containing the pixel values from the last exposure. This call can return either a 2 dimension (monochrome images) or 3 dimension (colour or multi-plane images) array of size NumX \* NumY or NumX \* NumY \* NumPlanes. Where applicable, the size of NumPlanes has to be determined by inspection of the returned Array.
-        
-        
+
+
         Since 32bit integers are always returned by this call, the returned JSON Type value (0 = Unknown, 1 = short(16bit), 2 = int(32bit), 3 = Double) is always 2. The number of planes is given in the returned Rank value.
-        
-        
+
+
         When de-serialising to an object it is essential to know the array Rank beforehand so that the correct data class can be used. This can be achieved through a regular expression or by direct parsing of the returned JSON string to extract the Type and Rank values before de-serialising.
-        
-        
+
+
         This regular expression accomplishes the extraction into two named groups Type and Rank, which can then be used to select the correct de-serialisation data class:
-        
-        
+
+
         __`^*"Type":(?<Type>\d*),"Rank":(?<Rank>\d*)`__
-        
-        
-        When the SensorType is Monochrome, RGGB, CMYG, CMYG2 or LRGB, the serialised JSON array should have 2 dimensions. For example, the returned array should appear as below if NumX = 7, NumY = 5 
-        and Pxy represents the pixel value at the zero based position x across and y down the image with the origin in the top left corner of the image.  
-        
-        
+
+
+        When the SensorType is Monochrome, RGGB, CMYG, CMYG2 or LRGB, the serialised JSON array should have 2 dimensions. For example, the returned array should appear as below if NumX = 7, NumY = 5
+        and Pxy represents the pixel value at the zero based position x across and y down the image with the origin in the top left corner of the image.
+
+
         Please note that this is "column-major" order (column changes most rapidly)
-        from the image's row and column perspective, while, from the array's perspective, serialisation is actually effected in "row-major" order (rightmost index changes most rapidly). 
+        from the image's row and column perspective, while, from the array's perspective, serialisation is actually effected in "row-major" order (rightmost index changes most rapidly).
         This unintuitive outcome arises because the ASCOM Camera Interface specification defines the image column dimension as the rightmost array dimension.
-        
-        
+
+
         [
-        
-        
+
+
         [P00,P01,P02,P03,P04],
-        
-        
+
+
         [P10,P11,P12,P13,P14],
-        
-        
+
+
         [P20,P21,P22,P23,P24],
-        
-        
+
+
         [P30,P31,P32,P33,P34],
-        
-        
+
+
         [P40,P41,P42,P43,P44],
-        
-        
+
+
         [P50,P51,P52,P53,P54],
-        
-        
+
+
         [P60,P61,P62,P63,P64]
-        
-        
+
+
         ]
-        
-        
-        When the SensorType is Color, the serialised JSON array will have 3 dimensions. For example, the returned array should appear as below if NumX = 7, NumY = 5 
+
+
+        When the SensorType is Color, the serialised JSON array will have 3 dimensions. For example, the returned array should appear as below if NumX = 7, NumY = 5
         and Rxy, Gxy and Bxy represent the red, green and blue pixel values at the zero based position x across and y down the image with the origin in the top left corner of the image.  Please see note above regarding element ordering.
-        
-        
+
+
         [
-        
+
 
         [[R00,G00,B00],[R01,G01,B01],[R02,G02,B02],[R03,G03,B03],[R04,G04,B04]],
 
@@ -1775,13 +2060,13 @@ paths:
 
 
         ]
-        
-        
+
+
         __`Performance`__
 
-        
-        Returning an image from an Alpaca device as a JSON array is very inefficient and can result in delays of 30 or more seconds while client and device process and send the huge JSON string over the network. 
-        A new, much faster mechanic called ImageBytes - [Alpaca ImageBytes Concepts and Implementation](https://www.ascom-standards.org/Developer/AlpacaImageBytes.pdf) has been developed that sends data as a binary byte stream and can offer a 10 to 20 fold reduction in transfer time. 
+
+        Returning an image from an Alpaca device as a JSON array is very inefficient and can result in delays of 30 or more seconds while client and device process and send the huge JSON string over the network.
+        A new, much faster mechanic called ImageBytes - [Alpaca ImageBytes Concepts and Implementation](https://www.ascom-standards.org/Developer/AlpacaImageBytes.pdf) has been developed that sends data as a binary byte stream and can offer a 10 to 20 fold reduction in transfer time.
         It is strongly recommended that Alpaca Cameras implement the ImageBytes mechanic as well as the JSON mechanic.
       parameters:
         - $ref: '#/components/parameters/device_number'
@@ -1796,6 +2081,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ImageArrayResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1035
+                ErrorMessage: There is no image available
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1819,70 +2109,70 @@ paths:
         dimension (colour or multi-plane images) array of size NumX \* NumY  or
         NumX \* NumY \* NumPlanes. Where applicable, the size of NumPlanes has
         to be determined by inspection of the returned Array.
-        
-        
+
+
         This call can return values as short(16bit) integers, int(32bit)
         integers or double floating point values. The nature of the returned
         values is given in the Type parameter: 0 = Unknown, 1 = short(16bit), 2
         = int(32bit), 3 = Double. The number of planes is given in the returned
         Rank value.
-        
-        
+
+
         When deserialising to an object it helps enormously to know the Type and
         Rank beforehand so that the correct data class can be used. This can be
         achieved through a regular expression or by direct parsing of the
         returned JSON string to extract the Type and Rank values before
         deserialising.
-        
-        
+
+
         This regular expression accomplishes the extraction into two named groups Type and Rank, which can then be used to select the correct de-serialisation data class:
-        
-        
+
+
         __`^*"Type":(?<Type>\d*),"Rank":(?<Rank>\d*)`__
-        
-        
-        When the SensorType is Monochrome, RGGB, CMYG, CMYG2 or LRGB, the serialised JSON array should have 2 dimensions. For example, the returned array should appear as below if NumX = 7, NumY = 5 
-        and Pxy represents the pixel value at the zero based position x across and y down the image with the origin in the top left corner of the image.  
-        
-        
+
+
+        When the SensorType is Monochrome, RGGB, CMYG, CMYG2 or LRGB, the serialised JSON array should have 2 dimensions. For example, the returned array should appear as below if NumX = 7, NumY = 5
+        and Pxy represents the pixel value at the zero based position x across and y down the image with the origin in the top left corner of the image.
+
+
         Please note that this is "column-major" order (column changes most rapidly)
-        from the image's row and column perspective, while, from the array's perspective, serialisation is actually effected in "row-major" order (rightmost index changes most rapidly). 
+        from the image's row and column perspective, while, from the array's perspective, serialisation is actually effected in "row-major" order (rightmost index changes most rapidly).
         This unintuitive outcome arises because the ASCOM Camera Interface specification defines the image column dimension as the rightmost array dimension.
-        
-        
+
+
         [
-        
-        
+
+
         [P00,P01,P02,P03,P04],
-        
-        
+
+
         [P10,P11,P12,P13,P14],
-        
-        
+
+
         [P20,P21,P22,P23,P24],
-        
-        
+
+
         [P30,P31,P32,P33,P34],
-        
-        
+
+
         [P40,P41,P42,P43,P44],
-        
-        
+
+
         [P50,P51,P52,P53,P54],
-        
-        
+
+
         [P60,P61,P62,P63,P64]
-        
-        
+
+
         ]
-        
-        
-        When the SensorType is Color, the serialised JSON array should have 3 dimensions. For example, the returned array should appear as below if NumX = 7, NumY = 5 
+
+
+        When the SensorType is Color, the serialised JSON array should have 3 dimensions. For example, the returned array should appear as below if NumX = 7, NumY = 5
         and Rxy, Gxy and Bxy represent the red, green and blue pixel values at the zero based position x across and y down the image with the origin in the top left corner of the image.  Please see note above regarding element ordering.
-        
-        
+
+
         [
-        
+
 
         [[R00,G00,B00],[R01,G01,B01],[R02,G02,B02],[R03,G03,B03],[R04,G04,B04]],
 
@@ -1906,13 +2196,13 @@ paths:
 
 
         ]
-        
-        
+
+
         __`Performance`__
 
-        
-        Returning an image from an Alpaca device as a JSON array is very inefficient and can result in delays of 30 or more seconds while client and device process and send the huge JSON string over the network. 
-        A new, much faster mechanic called ImageBytes - [Alpaca ImageBytes Concepts and Implementation](https://www.ascom-standards.org/Developer/AlpacaImageBytes.pdf) has been developed that sends data as a binary byte stream and can offer a 10 to 20 fold reduction in transfer time. 
+
+        Returning an image from an Alpaca device as a JSON array is very inefficient and can result in delays of 30 or more seconds while client and device process and send the huge JSON string over the network.
+        A new, much faster mechanic called ImageBytes - [Alpaca ImageBytes Concepts and Implementation](https://www.ascom-standards.org/Developer/AlpacaImageBytes.pdf) has been developed that sends data as a binary byte stream and can offer a 10 to 20 fold reduction in transfer time.
         It is strongly recommended that Alpaca Cameras implement the ImageBytes mechanic as well as the JSON mechanic.
       parameters:
         - $ref: '#/components/parameters/device_number'
@@ -1927,6 +2217,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ImageArrayResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1035
+                ErrorMessage: There is no image available
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1960,6 +2255,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -1993,6 +2294,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read IsPulseGuiding is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2026,6 +2333,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1031
+                ErrorMessage: Can't read LastExposureDuration when no image is ready
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2059,6 +2372,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StringResponse'
+              example:
+                Value: null
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1031
+                ErrorMessage: Can't read LastExposureStartTime when no image is ready
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2090,6 +2409,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 65535
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2121,6 +2446,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 4
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2152,6 +2483,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 4
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2185,6 +2522,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 800
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2213,6 +2556,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2239,7 +2587,7 @@ paths:
                     binned pixels.
                   type: integer
                   format: int32
-                  default: 0
+                  example: 0
                 ClientID:
                   description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
                   type: integer
@@ -2250,6 +2598,10 @@ paths:
                   format: uint32
               required:
                 - NumX
+            example:
+              NumX: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/camera/{device_number}/numy':
     get:
       summary: Returns the current subframe height
@@ -2269,6 +2621,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 600
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2297,6 +2655,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2323,7 +2686,7 @@ paths:
                     binned pixels.
                   type: integer
                   format: int32
-                  default: 0
+                  example: 0
                 ClientID:
                   description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
                   type: integer
@@ -2334,6 +2697,10 @@ paths:
                   format: uint32
               required:
                 - NumY
+            example:
+              NumY: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/camera/{device_number}/offset':
     get:
       summary: Returns the camera's offset
@@ -2351,6 +2718,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read Offset is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2379,6 +2752,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read Offset is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2403,7 +2781,7 @@ paths:
                   description: Index of the current camera offset in the offsets string array.
                   type: integer
                   format: int32
-                  default: 0
+                  example: 0
                 ClientID:
                   description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
                   type: integer
@@ -2414,6 +2792,10 @@ paths:
                   format: uint32
               required:
                 - offset
+            example:
+              offset: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/camera/{device_number}/offsetmax':
     get:
       summary: Maximum offset value of that this camera supports
@@ -2431,6 +2813,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read OffsetMax is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2447,7 +2835,7 @@ paths:
                 description: Error message describing why the command cannot be processed
   '/camera/{device_number}/offsetmin':
     get:
-      summary: Minimum offset value of that this camera supports 
+      summary: Minimum offset value of that this camera supports
       description: Returns the Minimum value of offset.
       parameters:
         - $ref: '#/components/parameters/device_number'
@@ -2462,6 +2850,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read OffsetMax is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2478,7 +2872,7 @@ paths:
                 description: Error message describing why the command cannot be processed
   '/camera/{device_number}/offsets':
     get:
-      summary: List of offset names supported by the camera 
+      summary: List of offset names supported by the camera
       description: Returns the offsets supported by the camera.
       parameters:
         - $ref: '#/components/parameters/device_number'
@@ -2493,6 +2887,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StringArrayResponse'
+              example:
+                Value: []
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read Offsets is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2528,6 +2928,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2559,6 +2965,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 5.6
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2590,6 +3002,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 5.6
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2625,6 +3043,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2653,6 +3077,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2679,7 +3108,7 @@ paths:
                     names indicating the camera's current readout mode.
                   type: integer
                   format: int32
-                  default: 0
+                  example: 0
                 ClientID:
                   description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
                   type: integer
@@ -2690,6 +3119,10 @@ paths:
                   format: uint32
               required:
                 - ReadoutMode
+            example:
+              ReadoutMode: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/camera/{device_number}/readoutmodes':
     get:
       summary: List of available readout modes
@@ -2710,6 +3143,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StringArrayResponse'
+              example:
+                Value: []
+                       - Default
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2741,6 +3181,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StringResponse'
+              example:
+                Value:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2762,7 +3208,7 @@ paths:
         colour)
       description: >
         Returns a value indicating whether the sensor is monochrome, or what
-        Bayer matrix it encodes. Where: 
+        Bayer matrix it encodes. Where:
 
         - 0 = Monochrome,
 
@@ -2791,6 +3237,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2822,6 +3274,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read SetCCDTemperature is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2850,6 +3308,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read SetCCDTemperature is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2873,7 +3336,7 @@ paths:
                 SetCCDTemperature:
                   description: Temperature set point (degrees Celsius).
                   type: number
-                  default: -10
+                  example: -10
                 ClientID:
                   description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
                   type: integer
@@ -2884,6 +3347,10 @@ paths:
                   format: uint32
               required:
                 - SetCCDTemperature
+            example:
+              SetCCDTemperature: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/camera/{device_number}/startx':
     get:
       summary: Return the current subframe X axis start position
@@ -2903,6 +3370,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2931,6 +3404,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -2955,7 +3433,7 @@ paths:
                   description: The subframe X axis start position in binned pixels.
                   type: integer
                   format: int32
-                  default: 0
+                  example: 0
                 ClientID:
                   description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
                   type: integer
@@ -2966,6 +3444,10 @@ paths:
                   format: uint32
               required:
                 - StartX
+            example:
+              StartX: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/camera/{device_number}/starty':
     get:
       summary: Return the current subframe Y axis start position
@@ -2985,6 +3467,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3013,6 +3501,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3037,7 +3530,7 @@ paths:
                   description: The subframe Y axis start position in binned pixels.
                   type: integer
                   format: int32
-                  default: 0
+                  example: 0
                 ClientID:
                   description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
                   type: integer
@@ -3048,6 +3541,10 @@ paths:
                   format: uint32
               required:
                 - StartY
+            example:
+              StartY: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/camera/{device_number}/subexposureduration':
     get:
       summary: Camera's sub-exposure interval
@@ -3066,6 +3563,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read SubExposureDuration is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3094,6 +3597,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Property read SubExposureDuration is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3117,7 +3625,7 @@ paths:
                 SubExposureDuration:
                   description: The request sub exposure duration in seconds
                   type: number
-                  default: 0
+                  example: 0
                 ClientID:
                   description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
                   type: integer
@@ -3127,7 +3635,11 @@ paths:
                   type: integer
                   format: uint32
               required:
-                - SubExposureDuration          
+                - SubExposureDuration
+            example:
+              SubExposureDuration: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/camera/{device_number}/abortexposure':
     put:
       summary: Aborts the current exposure
@@ -3145,6 +3657,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3178,6 +3695,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1024
+                ErrorMessage: Method PulseGuide is not implemented in this driver.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3219,6 +3741,11 @@ paths:
               required:
                 - Direction
                 - Duration
+            example:
+              Direction: 0
+              Duration: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/camera/{device_number}/startexposure':
     put:
       summary: Starts an exposure
@@ -3236,6 +3763,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1025
+                ErrorMessage: StartExposure Duration set - '0' is an invalid value. The valid range is: 3600 to 0.001.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3273,6 +3805,11 @@ paths:
               required:
                 - Duration
                 - Light
+            example:
+              Duration: 0
+              Light: true
+              ClientID: 1
+              ClientTransactionID: 1234
   '/camera/{device_number}/stopexposure':
     put:
       summary: Stops the current exposure
@@ -3290,6 +3827,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3311,7 +3853,7 @@ paths:
   '/covercalibrator/{device_number}/brightness':
     get:
       summary: Returns the current calibrator brightness
-      description: Returns the current calibrator brightness in the range 0 (completely off) to MaxBrightness (fully on) 
+      description: Returns the current calibrator brightness in the range 0 (completely off) to MaxBrightness (fully on)
       parameters:
         - $ref: '#/components/parameters/device_number'
         - $ref: '#/components/parameters/ClientIDQuery'
@@ -3325,6 +3867,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3343,7 +3891,7 @@ paths:
     get:
       summary: Returns the state of the calibration device
       description: >-
-        Returns the state of the calibration device, if present, otherwise returns "NotPresent". 
+        Returns the state of the calibration device, if present, otherwise returns "NotPresent".
         The calibrator state mode is specified as an integer value from the
         CalibratorStatus Enum.
       parameters:
@@ -3359,6 +3907,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 1
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3375,9 +3929,9 @@ paths:
                 description: Error message describing why the command cannot be processed
   '/covercalibrator/{device_number}/coverstate':
     get:
-      summary: Returns the state of the device cover" 
+      summary: Returns the state of the device cover"
       description: >-
-        Returns the state of the device cover, if present, otherwise returns "NotPresent". 
+        Returns the state of the device cover, if present, otherwise returns "NotPresent".
         The cover state mode is specified as an integer value from the
         CoverStatus Enum.
       parameters:
@@ -3393,6 +3947,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 1
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3410,7 +3970,7 @@ paths:
   '/covercalibrator/{device_number}/maxbrightness':
     get:
       summary: Returns the calibrator's maximum Brightness value.
-      description: The Brightness value that makes the calibrator deliver its maximum illumination. 
+      description: The Brightness value that makes the calibrator deliver its maximum illumination.
       parameters:
         - $ref: '#/components/parameters/device_number'
         - $ref: '#/components/parameters/ClientIDQuery'
@@ -3424,6 +3984,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 100
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3453,6 +4019,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3485,6 +4056,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3520,9 +4096,13 @@ paths:
                   format: uint32
               required:
                 - Position
+            example:
+              Brightness: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/covercalibrator/{device_number}/closecover':
     put:
-      summary: Initiates cover closing 
+      summary: Initiates cover closing
       description: 'Initiates cover closing if a cover is present.'
       parameters:
         - $ref: '#/components/parameters/device_number'
@@ -3535,6 +4115,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3566,6 +4151,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3597,6 +4187,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3632,6 +4227,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3670,6 +4271,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3703,6 +4310,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3736,6 +4349,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 180
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3767,6 +4386,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3798,6 +4423,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3829,6 +4460,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3860,6 +4497,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3891,6 +4534,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3922,6 +4571,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3953,6 +4608,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -3986,6 +4647,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4019,6 +4686,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 1
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4050,6 +4723,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4078,6 +4757,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4101,7 +4785,7 @@ paths:
                 Slaved:
                   description: 'True if telescope is slaved to dome, otherwise false'
                   type: boolean
-                  default: false
+                  example: false
                 ClientID:
                   description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
                   type: integer
@@ -4112,6 +4796,10 @@ paths:
                   format: uint32
               required:
                 - Slaved
+            example:
+              Slaved: false
+              ClientID: 1
+              ClientTransactionID: 1234
   '/dome/{device_number}/slewing':
     get:
       summary: Indicates whether the any part of the dome is moving
@@ -4131,6 +4819,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4162,6 +4856,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4193,6 +4892,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4226,6 +4930,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4257,6 +4966,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4288,6 +5002,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4323,6 +5042,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4354,6 +5078,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4389,6 +5118,10 @@ paths:
                   format: uint32
               required:
                 - Altitude
+            example:
+              Altitude: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/dome/{device_number}/slewtoazimuth':
     put:
       summary: Slew the dome to the given azimuth position.
@@ -4404,6 +5137,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4435,6 +5173,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4468,6 +5211,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntArrayResponse'
+              example:
+                Value:
+                  - 6329
+                  - 1787
+                  - 4560
+                  - 2087
+                  - 7764
+                  - 76
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4499,6 +5254,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StringArrayResponse'
+              example:
+                Value:
+                  - Red
+                  - Green
+                  - Blue
+                  - Clear
+                  - Ha
+                  - OIII
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4530,6 +5297,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4558,6 +5331,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4592,6 +5370,10 @@ paths:
                   format: uint32
               required:
                 - Position
+            example:
+              Position: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/focuser/{device_number}/absolute':
     get:
       summary: Indicates whether the focuser is capable of absolute position.
@@ -4611,6 +5393,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4644,6 +5432,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4677,6 +5471,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 50000
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4708,6 +5508,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 50000
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4739,6 +5545,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 25000
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4770,6 +5582,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 20
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4803,6 +5621,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4830,6 +5654,7 @@ paths:
           schema:
             type: integer
             format: int32
+          example: 0
       responses:
         '200':
           description: Transaction complete or exception
@@ -4837,6 +5662,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4872,6 +5702,10 @@ paths:
                   format: uint32
               required:
                 - TempComp
+            example:
+              TempComp: false
+              ClientID: 1
+              ClientTransactionID: 1234
   '/focuser/{device_number}/tempcompavailable':
     get:
       summary: Indicates whether the focuser has temperature compensation.
@@ -4889,6 +5723,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4920,6 +5760,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 6.48
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4951,6 +5797,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -4984,6 +5835,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5020,6 +5876,10 @@ paths:
                   format: uint32
               required:
                 - Position
+            example:
+              Position: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/observingconditions/{device_number}/averageperiod':
     get:
       summary: Returns the time period over which observations will be averaged
@@ -5037,6 +5897,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5065,6 +5931,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5088,7 +5959,7 @@ paths:
                 AveragePeriod:
                   description: Time period (hours) over which to average sensor readings
                   type: number
-                  default: 0.15
+                  example: 0.15
                 ClientID:
                   description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
                   type: integer
@@ -5099,6 +5970,10 @@ paths:
                   format: uint32
               required:
                 - AveragePeriod
+            example:
+              AveragePeriod: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/observingconditions/{device_number}/cloudcover':
     get:
       summary: Returns the amount of sky obscured by cloud
@@ -5116,6 +5991,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 1.1666666666666665
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5147,6 +6028,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: -3.148436937390965
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5178,6 +6065,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 51.1666666666667
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5211,6 +6104,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 1023.3000000000006
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5242,6 +6141,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5273,6 +6178,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 87.3333333333334
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5306,6 +6217,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 18.46666666666669
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5337,6 +6254,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: -27.29999999999999
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5370,6 +6293,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0.9666666666666662
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5401,6 +6330,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 6.193333333333333
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5437,6 +6372,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 192.92666666666653
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5472,6 +6413,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 3.0656666666666643
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5503,6 +6450,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0.7776666666666663
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5534,6 +6487,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5564,7 +6522,8 @@ paths:
           required: true
           schema:
             type: string
-            default: Pressure
+            example: Pressure
+          example: Pressure
         - $ref: '#/components/parameters/ClientIDQuery'
         - $ref: '#/components/parameters/ClientTransactionIDQuery'
       tags:
@@ -5576,6 +6535,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StringResponse'
+              example:
+                Value: ObservingConditions Simulated Pressure sensor
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5604,7 +6569,8 @@ paths:
           required: true
           schema:
             type: string
-            default: Pressure
+            example: Pressure
+          example: Pressure
         - $ref: '#/components/parameters/ClientIDQuery'
         - $ref: '#/components/parameters/ClientTransactionIDQuery'
       tags:
@@ -5616,6 +6582,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0.5446589
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5647,6 +6619,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5680,6 +6658,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5711,6 +6695,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5742,6 +6732,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5773,6 +6769,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5801,6 +6803,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5836,6 +6843,10 @@ paths:
                   format: uint32
               required:
                 - Reverse
+            example:
+              Reverse: false
+              ClientID: 1
+              ClientTransactionID: 1234
   '/rotator/{device_number}/stepsize':
     get:
       summary: Returns the minimum StepSize
@@ -5853,6 +6864,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0.75
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5884,6 +6901,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5915,6 +6938,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5948,6 +6976,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -5982,6 +7015,10 @@ paths:
                   format: uint32
               required:
                 - Position
+            example:
+              Position: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/rotator/{device_number}/moveabsolute':
     put:
       summary: Moves the rotator to a new absolute position.
@@ -5997,6 +7034,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6031,6 +7073,10 @@ paths:
                   format: uint32
               required:
                 - Position
+            example:
+              Position: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/rotator/{device_number}/movemechanical':
     put:
       summary: Moves the rotator to a new raw mechanical position.
@@ -6046,6 +7092,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6080,6 +7131,10 @@ paths:
                   format: uint32
               required:
                 - Position
+            example:
+              Position: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/rotator/{device_number}/sync':
     put:
       summary: Syncs the rotator to the specified position angle without moving it.
@@ -6095,6 +7150,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6129,6 +7189,10 @@ paths:
                   format: uint32
               required:
                 - Position
+            example:
+              Position: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/safetymonitor/{device_number}/issafe':
     get:
       summary: Indicates whether the monitored state is safe for use.
@@ -6148,6 +7212,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6181,6 +7251,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 10
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6216,6 +7292,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6250,6 +7332,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6285,6 +7373,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StringResponse'
+              example:
+                Value: Generic power switch
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6319,6 +7413,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StringResponse'
+              example:
+                Value: Power1
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6354,6 +7454,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6388,6 +7494,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6422,6 +7534,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 1
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6451,6 +7569,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6489,6 +7612,11 @@ paths:
               required:
                 - Id
                 - State
+            example:
+              Id: 0
+              State: true
+              ClientID: 1
+              ClientTransactionID: 1234
   '/switch/{device_number}/setswitchname':
     put:
       summary: Sets a switch device name to the specified value
@@ -6504,6 +7632,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6541,6 +7674,11 @@ paths:
               required:
                 - Id
                 - Name
+            example:
+              Id: 0
+              Name: StringValue
+              ClientID: 1
+              ClientTransactionID: 1234
   '/switch/{device_number}/setswitchvalue':
     put:
       summary: Sets a switch device value to the specified value
@@ -6556,6 +7694,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6596,6 +7739,11 @@ paths:
               required:
                 - Id
                 - Value
+            example:
+              Id: 0
+              Value: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/switch/{device_number}/switchstep':
     get:
       summary: >-
@@ -6619,6 +7767,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 1
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage:
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6637,7 +7791,7 @@ paths:
     get:
       summary: Returns the current mount alignment mode
       description: >-
-        Returns the alignment mode of the mount (Alt/Az, Polar, German Polar). 
+        Returns the alignment mode of the mount (Alt/Az, Polar, German Polar).
         The alignment mode is specified as an integer value from the
         AlignmentModes Enum.
       parameters:
@@ -6653,6 +7807,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 2
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6686,6 +7846,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 38.921389999999974
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6719,6 +7885,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0.0269
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6750,6 +7922,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0.2
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6784,6 +7962,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6817,6 +8001,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6850,6 +8040,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 180.00000259283067
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6883,6 +8079,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6914,6 +8116,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6947,6 +8155,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -6980,6 +8194,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7013,6 +8233,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7046,6 +8272,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7079,6 +8311,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7112,6 +8350,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7145,6 +8389,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7178,6 +8428,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7213,6 +8469,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7248,6 +8510,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7281,6 +8549,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7314,6 +8588,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7349,6 +8629,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7380,6 +8666,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7415,6 +8707,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7446,6 +8744,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7474,6 +8778,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7508,6 +8817,10 @@ paths:
                   format: uint32
               required:
                 - DeclinationRate
+            example:
+              DeclinationRate: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/telescope/{device_number}/doesrefraction':
     get:
       summary: Indicates whether atmospheric refraction is applied to coordinates.
@@ -7527,6 +8840,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7557,6 +8876,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7592,6 +8916,10 @@ paths:
                   format: uint32
               required:
                 - DoesRefraction
+            example:
+              DoesRefraction: true
+              ClientID: 1
+              ClientTransactionID: 1234
   '/telescope/{device_number}/equatorialsystem':
     get:
       summary: Returns the current equatorial coordinate system used by this telescope.
@@ -7611,6 +8939,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 1
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7642,6 +8976,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 1.26
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7675,6 +9015,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0.004178074616551509
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7705,6 +9051,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7739,6 +9090,10 @@ paths:
                   format: uint32
               required:
                 - GuideRateDeclination
+            example:
+              GuideRateDeclination: 0.004178074616551509
+              ClientID: 1
+              ClientTransactionID: 1234
   '/telescope/{device_number}/guideraterightascension':
     get:
       summary: Returns the  current RightAscension rate offset for telescope guiding
@@ -7758,6 +9113,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0.004178074616551509
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7788,6 +9149,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7822,6 +9188,10 @@ paths:
                   format: uint32
               required:
                 - GuideRateRightAscension
+            example:
+              GuideRateRightAscension: 0.004178074616551509
+              ClientID: 1
+              ClientTransactionID: 1234
   '/telescope/{device_number}/ispulseguiding':
     get:
       summary: >-
@@ -7843,6 +9213,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7877,6 +9253,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 17.268830982581807
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7908,6 +9290,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7936,6 +9324,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -7970,6 +9363,10 @@ paths:
                   format: uint32
               required:
                 - RightAscensionRate
+            example:
+              RightAscensionRate: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/telescope/{device_number}/sideofpier':
     get:
       summary: Returns the mount's pointing state.
@@ -7989,6 +9386,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8017,6 +9420,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8051,6 +9459,10 @@ paths:
                   format: uint32
               required:
                 - SideOfPier
+            example:
+              SideOfPier: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/telescope/{device_number}/siderealtime':
     get:
       summary: Returns the local apparent sidereal time.
@@ -8070,6 +9482,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 17.26883111706479
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8103,6 +9521,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 315
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8133,6 +9557,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8167,6 +9596,10 @@ paths:
                   format: uint32
               required:
                 - SiteElevation
+            example:
+              SiteElevation: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/telescope/{device_number}/sitelatitude':
     get:
       summary: Returns the observing site's latitude.
@@ -8186,6 +9619,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 51.07861
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8214,6 +9653,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8248,6 +9692,10 @@ paths:
                   format: uint32
               required:
                 - SiteLatitude
+            example:
+              SiteLatitude: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/telescope/{device_number}/sitelongitude':
     get:
       summary: Returns the observing site's longitude.
@@ -8267,6 +9715,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: -0.29444
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8295,6 +9749,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8329,6 +9788,10 @@ paths:
                   format: uint32
               required:
                 - SiteLongitude
+            example:
+              SiteLongitude: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/telescope/{device_number}/slewing':
     get:
       summary: Indicates whether the telescope is currently slewing.
@@ -8349,6 +9812,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8380,6 +9849,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8408,6 +9883,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8442,6 +9922,10 @@ paths:
                   format: uint32
               required:
                 - SlewSettleTime
+            example:
+              SlewSettleTime: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/telescope/{device_number}/targetdeclination':
     get:
       summary: Returns the current target declination.
@@ -8461,6 +9945,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1026
+                ErrorMessage: TargetDeclination get - no value has been set.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8491,6 +9981,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8525,6 +10020,10 @@ paths:
                   format: uint32
               required:
                 - TargetDeclination
+            example:
+              TargetDeclination: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/telescope/{device_number}/targetrightascension':
     get:
       summary: Returns the current target right ascension.
@@ -8544,6 +10043,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoubleResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1026
+                ErrorMessage: TargetRightAscension get - no value has been set.
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8574,6 +10079,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8608,6 +10118,10 @@ paths:
                   format: uint32
               required:
                 - TargetRightAscension
+            example:
+              TargetRightAscension: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/telescope/{device_number}/tracking':
     get:
       summary: Indicates whether the telescope is tracking.
@@ -8625,6 +10139,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: false
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8653,6 +10173,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8686,6 +10211,10 @@ paths:
                   format: uint32
               required:
                 - Tracking
+            example:
+              Tracking: false
+              ClientID: 1
+              ClientTransactionID: 1234
   '/telescope/{device_number}/trackingrate':
     get:
       summary: Returns the current tracking rate.
@@ -8703,6 +10232,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 0
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8733,6 +10268,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8767,6 +10307,10 @@ paths:
                   format: uint32
               required:
                 - TrackingRate
+            example:
+              TrackingRate: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/telescope/{device_number}/trackingrates':
     get:
       summary: Returns a collection of supported DriveRates values.
@@ -8786,6 +10330,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DriveRatesResponse'
+              example:
+                Value:
+                  - 0
+                  - 3
+                  - 1
+                  - 2
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8822,6 +10376,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StringResponse'
+              example:
+                Value: 2022-10-12T15:52:29.2965232Z
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8855,6 +10415,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8888,6 +10453,10 @@ paths:
                   format: uint32
               required:
                 - UTCDate
+            example:
+              UTCDate: '2022-10-12T15:44:52.1443650Z'
+              ClientID: 1
+              ClientTransactionID: 1234
   '/telescope/{device_number}/abortslew':
     put:
       summary: Immediatley stops a slew in progress.
@@ -8903,6 +10472,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8941,6 +10515,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AxisRatesResponse'
+              example:
+                Value:
+                  - Minimum: 0
+                    Maximum: 6.666666666666667
+                  - Minimum: 10
+                    Maximum: 20
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -8973,6 +10557,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BoolResponse'
+              example:
+                Value: true
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -9011,6 +10601,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntResponse'
+              example:
+                Value: 1
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -9040,6 +10636,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -9071,6 +10672,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -9095,13 +10701,13 @@ paths:
                   description: >-
                     The axis about which rate information is desired. 0 = axisPrimary, 1 = axisSecondary, 2 = axisTertiary.
                   type: integer
-                  default: 0
+                  example: 0
                   minimum: 0
                   maximum: 2
                 Rate:
                   description: The rate of motion (deg/sec) about the specified axis
                   type: number
-                  default: 0
+                  example: 0
                 ClientID:
                   description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
                   type: integer
@@ -9113,6 +10719,11 @@ paths:
               required:
                 - Axis
                 - Rate
+            example:
+              Axis: 0
+              Rate: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/telescope/{device_number}/park':
     put:
       summary: Park the mount
@@ -9130,6 +10741,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -9163,6 +10779,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -9189,12 +10810,12 @@ paths:
                     0 = guideNorth, 1 = guideSouth, 2 = guideEast, 3 = guideWest
                   type: integer
                   format: int32
-                  default: 0
+                  example: 0
                 Duration:
                   description: The duration of the guide-rate motion (milliseconds)
                   type: integer
                   format: int32
-                  default: 5
+                  example: 5
                 ClientID:
                   description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
                   type: integer
@@ -9206,6 +10827,11 @@ paths:
               required:
                 - Direction
                 - Duration
+            example:
+              Direction: 0
+              Duration: 0
+              ClientID: 1
+              ClientTransactionID: 1234
   '/telescope/{device_number}/setpark':
     put:
       summary: Sets the telescope's park position
@@ -9221,6 +10847,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -9254,6 +10885,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -9288,6 +10924,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -9321,6 +10962,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1035
+                ErrorMessage: SlewToCoordinates is not allowed when tracking is False
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -9355,6 +11001,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1035
+                ErrorMessage: SlewToCoordinatesAsync is not allowed when tracking is False
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -9390,6 +11041,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1035
+                ErrorMessage: SlewToTarget is not allowed when tracking is False
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -9427,6 +11083,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1035
+                ErrorMessage: SlewToTargetAsync is not allowed when tracking is False
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -9460,6 +11121,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -9493,6 +11159,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1035
+                ErrorMessage: SyncToCoordinates is not allowed when tracking is False
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -9526,6 +11197,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 1035
+                ErrorMessage: SyncToTarget is not allowed when tracking is False
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -9557,6 +11233,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MethodResponse'
+              example:
+                ClientTransactionID: 1234
+                ServerTransactionID: 5678
+                ErrorNumber: 0
+                ErrorMessage: ''
         '400':
           description: 'Method or parameter value error, check error message'
           content:
@@ -9582,7 +11263,7 @@ components:
       required: true
       schema:
         type: string
-        default: telescope
+        example: telescope
         pattern: '^[a-z]*$'
     device_number:
       name: device_number
@@ -9592,7 +11273,7 @@ components:
       schema:
         type: integer
         format: uint32
-        default: 0
+        example: 0
         minimum: 0
         maximum: 4294967295
     ClientIDQuery:
@@ -9603,7 +11284,7 @@ components:
       schema:
         type: integer
         format: uint32
-        default: 1
+        example: 1
         minimum: 0
         maximum: 4294967295
     ClientTransactionIDQuery:
@@ -9614,7 +11295,7 @@ components:
       schema:
         type: integer
         format: uint32
-        default: 1234
+        example: 1234
         minimum: 0
         maximum: 4294967295
     RightAscensionQuery:
@@ -9624,7 +11305,7 @@ components:
       required: true
       schema:
         type: number
-        default: 3.0
+        example: 3.0
         minimum: 0.0
         maximum: 23.9999999999
     DeclinationQuery:
@@ -9634,7 +11315,7 @@ components:
       required: true
       schema:
         type: number
-        default: 0.0
+        example: 0.0
         minimum: -90.0
         maximum: 90.0
     AxisQuery:
@@ -9647,7 +11328,7 @@ components:
       schema:
         type: integer
         format: int32
-        default: 0
+        example: 0
         minimum: 0
         maximum: 2
     SwitchNumberQuery:
@@ -9658,7 +11339,7 @@ components:
       schema:
         type: integer
         format: int32
-        default: 0
+        example: 0
         minimum: 0
         maximum: 2147483647
   requestBodies:
@@ -9692,6 +11373,11 @@ components:
             required:
               - Command
               - Raw
+          example:
+            Command: StringValue
+            Raw: StringValue
+            ClientID: 1
+            ClientTransactionID: 1234
     putStandardClientParameters:
       content:
         application/x-www-form-urlencoded:
@@ -9710,6 +11396,9 @@ components:
                 format: uint32
                 minimum: 0
                 maximum: 4294967295
+          example:
+            ClientID: 1
+            ClientTransactionID: 1234
     putDome_devicenumber_slewtoazimuth:
       content:
         application/x-www-form-urlencoded:
@@ -9735,6 +11424,10 @@ components:
                 maximum: 4294967295
             required:
               - Azimuth
+          example:
+            Azimuth: 0
+            ClientID: 1
+            ClientTransactionID: 1234
     putTelescope_devicenumber_slewtoaltaz:
       content:
         application/x-www-form-urlencoded:
@@ -9764,6 +11457,11 @@ components:
             required:
               - Azimuth
               - Altitude
+          example:
+            Azimuth: 0
+            Altitude: 0
+            ClientID: 1
+            ClientTransactionID: 1234
     putTelescope_devicenumber_slewtocoordinates:
       content:
         application/x-www-form-urlencoded:
@@ -9791,6 +11489,11 @@ components:
             required:
               - RightAscension
               - Declination
+          example:
+            RightAscension: 0
+            Declination: 0
+            ClientID: 1
+            ClientTransactionID: 1234
   schemas:
     ImageArrayResponse:
       type: object
@@ -9830,7 +11533,7 @@ components:
           format: int32
           minimum: -2147483648
           maximum: 2147483647
-          description: >- 
+          description: >-
             Zero for a successful transaction, or a non-zero integer (-2147483648 to 2147483647) if the device encountered an issue. Devices must use ASCOM reserved error numbers whenever appropriate so that clients can take informed actions. E.g. returning 0x401 (1025) to indicate that an invalid value was received (see Alpaca API definition and developer documentation for further information).
         ErrorMessage:
           type: string
@@ -9858,7 +11561,7 @@ components:
           format: int32
           minimum: -2147483648
           maximum: 2147483647
-          description: >- 
+          description: >-
             Zero for a successful transaction, or a non-zero integer (-2147483648 to 2147483647) if the device encountered an issue. Devices must use ASCOM reserved error numbers whenever appropriate so that clients can take informed actions. E.g. returning 0x401 (1025) to indicate that an invalid value was received (see Alpaca API definition and developer documentation for further information).
         ErrorMessage:
           type: string
@@ -9887,7 +11590,7 @@ components:
           format: int32
           minimum: -2147483648
           maximum: 2147483647
-          description: >- 
+          description: >-
             Zero for a successful transaction, or a non-zero integer (-2147483648 to 2147483647) if the device encountered an issue. Devices must use ASCOM reserved error numbers whenever appropriate so that clients can take informed actions. E.g. returning 0x401 (1025) to indicate that an invalid value was received (see Alpaca API definition and developer documentation for further information).
         ErrorMessage:
           type: string
@@ -9916,7 +11619,7 @@ components:
           format: int32
           minimum: -2147483648
           maximum: 2147483647
-          description: >- 
+          description: >-
             Zero for a successful transaction, or a non-zero integer (-2147483648 to 2147483647) if the device encountered an issue. Devices must use ASCOM reserved error numbers whenever appropriate so that clients can take informed actions. E.g. returning 0x401 (1025) to indicate that an invalid value was received (see Alpaca API definition and developer documentation for further information).
         ErrorMessage:
           type: string
@@ -9947,7 +11650,7 @@ components:
           format: int32
           minimum: -2147483648
           maximum: 2147483647
-          description: >- 
+          description: >-
             Zero for a successful transaction, or a non-zero integer (-2147483648 to 2147483647) if the device encountered an issue. Devices must use ASCOM reserved error numbers whenever appropriate so that clients can take informed actions. E.g. returning 0x401 (1025) to indicate that an invalid value was received (see Alpaca API definition and developer documentation for further information).
         ErrorMessage:
           type: string
@@ -9972,7 +11675,7 @@ components:
           format: int32
           minimum: -2147483648
           maximum: 2147483647
-          description: >- 
+          description: >-
             Zero for a successful transaction, or a non-zero integer (-2147483648 to 2147483647) if the device encountered an issue. Devices must use ASCOM reserved error numbers whenever appropriate so that clients can take informed actions. E.g. returning 0x401 (1025) to indicate that an invalid value was received (see Alpaca API definition and developer documentation for further information).
         ErrorMessage:
           type: string
@@ -10000,7 +11703,7 @@ components:
           format: int32
           minimum: -2147483648
           maximum: 2147483647
-          description: >- 
+          description: >-
             Zero for a successful transaction, or a non-zero integer (-2147483648 to 2147483647) if the device encountered an issue. Devices must use ASCOM reserved error numbers whenever appropriate so that clients can take informed actions. E.g. returning 0x401 (1025) to indicate that an invalid value was received (see Alpaca API definition and developer documentation for further information).
         ErrorMessage:
           type: string
@@ -10030,7 +11733,7 @@ components:
           format: int32
           minimum: -2147483648
           maximum: 2147483647
-          description: >- 
+          description: >-
             Zero for a successful transaction, or a non-zero integer (-2147483648 to 2147483647) if the device encountered an issue. Devices must use ASCOM reserved error numbers whenever appropriate so that clients can take informed actions. E.g. returning 0x401 (1025) to indicate that an invalid value was received (see Alpaca API definition and developer documentation for further information).
         ErrorMessage:
           type: string
@@ -10062,7 +11765,7 @@ components:
           format: int32
           minimum: -2147483648
           maximum: 2147483647
-          description: >- 
+          description: >-
             Zero for a successful transaction, or a non-zero integer (-2147483648 to 2147483647) if the device encountered an issue. Devices must use ASCOM reserved error numbers whenever appropriate so that clients can take informed actions. E.g. returning 0x401 (1025) to indicate that an invalid value was received (see Alpaca API definition and developer documentation for further information).
         ErrorMessage:
           type: string
@@ -10113,19 +11816,19 @@ components:
           format: int32
           minimum: -2147483648
           maximum: 2147483647
-          description: >- 
+          description: >-
             Zero for a successful transaction, or a non-zero integer (-2147483648 to 2147483647) if the device encountered an issue. Devices must use ASCOM reserved error numbers whenever appropriate so that clients can take informed actions. E.g. returning 0x401 (1025) to indicate that an invalid value was received (see Alpaca API definition and developer documentation for further information).
         ErrorMessage:
           type: string
           description: Empty string for a successful transaction, or a message describing the issue that was encountered. If an error message is returned, a non zero error number must also be returned.
     DriveRate:
       description: >-
-        DriveRate object corresponding to one of the standard drive rates  
+        DriveRate object corresponding to one of the standard drive rates
 
-          driveSidereal =  0  - Sidereal tracking rate (15.041 arcseconds per second).  
-          driveLunar = 1 - Lunar tracking rate (14.685 arcseconds per second).  
-          driveSolar = 2 - Solar tracking rate (15.0 arcseconds per second).  
-          driveKing = 3 - King tracking rate (15.0369 arcseconds per second).  
+          driveSidereal =  0  - Sidereal tracking rate (15.041 arcseconds per second).
+          driveLunar = 1 - Lunar tracking rate (14.685 arcseconds per second).
+          driveSolar = 2 - Solar tracking rate (15.0 arcseconds per second).
+          driveKing = 3 - King tracking rate (15.0369 arcseconds per second).
       type: number
       format: int32
       minimum: 0
