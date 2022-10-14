@@ -5099,20 +5099,13 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-              type: object
-              properties:
-                TrackingRate:
-                  $ref: '#/components/schemas/DriveRate'
-                ClientID:
-                  description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
-                  type: integer
-                  format: uint32
-                ClientTransactionID:
-                  description: Client's transaction ID. (0 to 4294967295). The client should start this count at 1 and increment by one on each successive transaction. This will aid associating entries in device logs with corresponding entries in client side logs.
-                  type: integer
-                  format: uint32
-              required:
-                - TrackingRate
+              allOf:
+                - $ref: '#/components/schemas/AlpacaRequest'
+                - properties:
+                    TrackingRate:
+                      $ref: '#/components/schemas/DriveRate'
+                  required:
+                    - TrackingRate
   '/telescope/{device_number}/trackingrates':
     get:
       summary: Returns a collection of supported DriveRates values.
@@ -5301,25 +5294,17 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-              type: object
-              properties:
-                Axis:
-                  $ref: '#/components/schemas/Axis'
-                Rate:
-                  description: The rate of motion (deg/sec) about the specified axis
-                  type: number
-                  default: 0
-                ClientID:
-                  description: Client's unique ID. (0 to 4294967295). The client should choose a value at start-up, e.g. a random value between 0 and 65535, and send this value on every transaction to help associate entries in device logs with this particular client.
-                  type: integer
-                  format: uint32
-                ClientTransactionID:
-                  description: Client's transaction ID. (0 to 4294967295). The client should start this count at 1 and increment by one on each successive transaction. This will aid associating entries in device logs with corresponding entries in client side logs.
-                  type: integer
-                  format: uint32
-              required:
-                - Axis
-                - Rate
+              allOf:
+                - $ref: '#/components/schemas/AlpacaRequest'
+                - properties:
+                    Axis:
+                      $ref: '#/components/schemas/Axis'
+                    Rate:
+                      description: The rate of motion (deg/sec) about the specified axis.
+                      type: number
+                  required:
+                    - Axis
+                    - Rate
   '/telescope/{device_number}/park':
     put:
       summary: Park the mount
