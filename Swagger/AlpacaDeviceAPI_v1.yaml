@@ -1005,7 +1005,7 @@ paths:
         Returns an array of 32bit integers containing the pixel values from the last exposure. This call can return either a 2 dimension (monochrome images) or 3 dimension (colour or multi-plane images) array of size NumX \* NumY or NumX \* NumY \* NumPlanes. Where applicable, the size of NumPlanes has to be determined by inspection of the returned Array.
 
 
-        Since 32bit integers are always returned by this call, the returned JSON Type value (0 = Unknown, 1 = short(16bit), 2 = int(32bit), 3 = Double) is always 2. The number of planes is given in the returned Rank value.
+        The number of planes is given in the returned Rank value.
 
 
         When de-serialising to an object it is essential to know the array Rank beforehand so that the correct data class can be used. This can be achieved through a regular expression or by direct parsing of the returned JSON string to extract the Type and Rank values before de-serialising.
@@ -1098,7 +1098,21 @@ paths:
         - Camera Specific Methods
       responses:
         '200':
-          $ref: '#/components/responses/ImageArrayResponse'
+          description: Transaction complete or exception.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/AlpacaResponse'
+                  - $ref: '#/components/schemas/ImageArrayVariant'
+                  - properties:
+                      Type:
+                        description: Since 32bit integers are always returned by this call, the Type is always 2 (int32).
+                        minimum: 2
+                        maximum: 2
+            application/imagebytes:
+              schema:
+                $ref: '#/components/schemas/ImageBytes'
         '400':
           $ref: '#/components/responses/400'
         '500':
@@ -1215,7 +1229,16 @@ paths:
         - Camera Specific Methods
       responses:
         '200':
-          $ref: '#/components/responses/ImageArrayResponse'
+          description: Transaction complete or exception.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/AlpacaResponse'
+                  - $ref: '#/components/schemas/ImageArrayVariant'
+            application/imagebytes:
+              schema:
+                $ref: '#/components/schemas/ImageBytes'
         '400':
           $ref: '#/components/responses/400'
         '500':
@@ -5779,35 +5802,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/AlpacaResponse'
-    ImageArrayResponse:
-      description: Transaction complete or exception.
-      content:
-        application/json:
-          schema:
-            allOf:
-              - $ref: '#/components/schemas/AlpacaResponse'
-              - properties:
-                  Type:
-                    type: integer
-                    format: int32
-                    description: >-
-                      0 = Unknown, 1 = Short(int16), 2 = Integer (int32), 3 = Double (Double
-                      precision real number).
-                    minimum: 0
-                    maximum: 3
-                  Rank:
-                    type: integer
-                    format: int32
-                    description: >-
-                      The array's rank, will be 2 (single plane image (monochrome)) or 3
-                      (multi-plane image).
-                  Value:
-                    type: array
-                    items:
-                      type: array
-                      items:
-                        type: number
-                        description: Returned integer or double value
     BoolResponse:
       description: Transaction complete or exception.
       content:
@@ -5986,3 +5980,49 @@ components:
       format: int32
       minimum: 0
       maximum: 3
+    ImageArrayVariant:
+      type: 'object'
+      properties:
+        Type:
+          type: integer
+          format: int32
+          description: >-
+            0 = Unknown, 1 = Short(int16), 2 = Integer (int32), 3 = Double (Double
+            precision real number).
+          minimum: 0
+          maximum: 3
+        Rank:
+          type: integer
+          format: int32
+          minimum: 2
+          maximum: 3
+          description: >-
+            The array's rank, will be 2 (single-plane image like monochrome or Bayer-encoded) or 3 (colour or multi-plane image).
+        Value:
+          oneOf:
+            - title: Rank=2
+              type: array
+              description: Single-plane image. The top array represents NumX image rows.
+              items:
+                type: array
+                description: The inner array represents a row of NumY pixel values.
+                items:
+                  type: number
+            - title: Rank=3
+              type: array
+              description: Multi-plane image. The top array represents NumX image rows.
+              items:
+                type: array
+                description: The nested array represents a row of NumY pixel values.
+                items:
+                  type: array
+                  description: The innermost array represents a pixel of NumPlanes component values.
+                  items:
+                    type: number
+                    minItems: 1
+    ImageBytes:
+      type: string
+      format: binary
+      description: >
+        Binary data format for image transmission.
+        See [Alpaca ImageBytes Concepts and Implementation](https://www.ascom-standards.org/Developer/AlpacaImageBytes.pdf) for more details.
