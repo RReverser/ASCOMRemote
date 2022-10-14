@@ -2010,7 +2010,7 @@ paths:
         - CoverCalibrator Specific Methods
       responses:
         '200':
-          $ref: '#/components/responses/IntResponse'
+          $ref: '#/components/responses/CalibratorStatusResponse'
         '400':
           $ref: '#/components/responses/400'
         '500':
@@ -2030,7 +2030,7 @@ paths:
         - CoverCalibrator Specific Methods
       responses:
         '200':
-          $ref: '#/components/responses/IntResponse'
+          $ref: '#/components/responses/CoverStatusResponse'
         '400':
           $ref: '#/components/responses/400'
         '500':
@@ -3893,7 +3893,7 @@ paths:
         - Telescope Specific Methods
       responses:
         '200':
-          $ref: '#/components/responses/IntResponse'
+          $ref: '#/components/responses/AlignmentModeResponse'
         '400':
           $ref: '#/components/responses/400'
         '500':
@@ -4445,7 +4445,7 @@ paths:
         - Telescope Specific Methods
       responses:
         '200':
-          $ref: '#/components/responses/IntResponse'
+          $ref: '#/components/responses/EquatorialSystemResponse'
         '400':
           $ref: '#/components/responses/400'
         '500':
@@ -5941,6 +5941,126 @@ components:
                       - Normal pointing state - Mount on the East side of pier (looking West).
                       - Through the pole pointing state - Mount on the West side of pier (looking East).
                       - Unknown or indeterminate.
+    CalibratorStatusResponse:
+      description: Transaction complete or exception.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/AlpacaResponse'
+              - properties:
+                  Value:
+                    type: integer
+                    format: int32
+                    description: Returned side of pier
+                    enum:
+                      - 0
+                      - 1
+                      - 2
+                      - 3
+                      - 4
+                      - 5
+                    x-enum-varnames:
+                      - NotPresent
+                      - 'Off'
+                      - NotReady
+                      - Ready
+                      - Unknown
+                      - Error
+                    x-enum-descriptions:
+                      - This device does not have a calibration capability.
+                      - The calibrator is off.
+                      - The calibrator is stabilising or is not yet in the commanded state.
+                      - The calibrator is ready for use.
+                      - The calibrator state is unknown.
+                      - The calibrator encountered an error when changing state.
+    CoverStatusResponse:
+      description: Transaction complete or exception.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/AlpacaResponse'
+              - properties:
+                  Value:
+                    type: integer
+                    format: int32
+                    description: Returned side of pier
+                    enum:
+                      - 0
+                      - 1
+                      - 2
+                      - 3
+                      - 4
+                      - 5
+                    x-enum-varnames:
+                      - NotPresent
+                      - Closed
+                      - Moving
+                      - Open
+                      - Unknown
+                      - Error
+                    x-enum-descriptions:
+                      - This device does not have a cover that can be closed independently.
+                      - The cover is closed.
+                      - The cover is moving to a new position.
+                      - The cover is open.
+                      - The state of the cover is unknown.
+                      - The device encountered an error when changing state.
+    AlignmentModeResponse:
+      description: Transaction complete or exception.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/AlpacaResponse'
+              - properties:
+                  Value:
+                    type: integer
+                    format: int32
+                    description: Returned side of pier
+                    enum:
+                      - 0
+                      - 1
+                      - 2
+                    x-enum-varnames:
+                      - AltAz
+                      - Polar
+                      - GermanPolar
+                    x-enum-descriptions:
+                      - Altitude-Azimuth alignment.
+                      - Polar (equatorial) mount other than German equatorial.
+                      - German equatorial mount.
+    EquatorialSystemResponse:
+      description: Transaction complete or exception.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/AlpacaResponse'
+              - properties:
+                  Value:
+                    type: integer
+                    format: int32
+                    description: Returned side of pier
+                    enum:
+                      - 0
+                      - 1
+                      - 2
+                      - 3
+                      - 4
+                    x-enum-varnames:
+                      - Other
+                      - Topocentric
+                      - J2000
+                      - J2050
+                      - B1950
+                    x-enum-descriptions:
+                      - Custom or unknown equinox and/or reference frame.
+                      - Topocentric coordinates. Coordinates of the object at the current date having allowed for annual aberration, precession and nutation. This is the most common coordinate type for amateur telescopes.
+                      - J2000 equator/equinox. Coordinates of the object at mid-day on 1st January 2000, ICRS reference frame.
+                      - J2050 equator/equinox, ICRS reference frame.
+                      - B1950 equinox, FK4 reference frame.
     IntArrayResponse:
       description: Transaction complete or exception.
       content:
