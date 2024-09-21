@@ -8,7 +8,5 @@ jobs:
       NODE_OPTIONS: --no-deprecation # Redocly uses deprecated `punycode` package, but that shouldn't be an issue.
     steps:
       - uses: actions/checkout@v2
-      - name: Install OpenAPI validator
-        run: npm install @redocly/cli
       - name: Validate definitions
-        run: openapi lint Swagger/*.yaml
+        run: npx @redocly/cli lint Swagger/*.yaml
