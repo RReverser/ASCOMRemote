@@ -5,6 +5,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Validate OpenAPI definitions
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v2
       - name: Validate definitions
-        run: npx --node-arg=--no-warnings @redocly/cli lint Swagger/*.yaml
+        run: npx @redocly/cli lint Swagger/*.yaml
+        env:
+          NODE_NO_WARNINGS: 1
