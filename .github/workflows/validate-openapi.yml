@@ -7,4 +7,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate definitions
-        run: npx --node-options=--no-warnings @redocly/cli lint Swagger/*.yaml
+        run: npx --node-arg=--no-warnings @redocly/cli lint Swagger/*.yaml
