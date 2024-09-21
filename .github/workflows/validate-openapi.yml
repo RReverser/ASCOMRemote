@@ -7,11 +7,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Validate Device OpenAPI definition
-        uses: swaggerexpert/swagger-editor-validate@v1
+      - uses: mbowman100/swagger-validator-action@master
         with:
-          definition-file: Swagger/AlpacaDeviceAPI_v1.yaml
-      - name: Validate Management OpenAPI definition
-        uses: swaggerexpert/swagger-editor-validate@v1
-        with:
-          definition-file: Swagger/AlpacaManagementAPI_v1.yaml
+          files: |
+            Swagger/AlpacaDeviceAPI_v1.yaml
+            Swagger/AlpacaManagementAPI_v1.yaml
