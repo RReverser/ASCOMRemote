@@ -7,7 +7,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: char0n/apidom-validate@v1
+      - name: Validate Device OpenAPI definition
+        uses: swaggerexpert/swagger-editor-validate@v1
         with:
           definition-file: Swagger/AlpacaDeviceAPI_v1.yaml
-          fails-on: 2
+          swagger-editor-url: 'https://editor-next.swagger.io'
