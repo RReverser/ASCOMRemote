@@ -1,0 +1,17 @@
+on: [push]
+
+jobs:
+  validate_openapi:
+    runs-on: ubuntu-latest
+    name: Validate OpenAPI definitions
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Validate Device OpenAPI definition
+        uses: swaggerexpert/swagger-editor-validate@v1
+        with:
+          definition-file: Swagger/AlpacaDeviceAPI_v1.yaml
+      - name: Validate Management OpenAPI definition
+        uses: swaggerexpert/swagger-editor-validate@v1
+        with:
+          definition-file: Swagger/AlpacaManagementAPI_v1.yaml
