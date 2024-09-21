@@ -9,6 +9,6 @@ jobs:
       - name: Install OpenAPI validator
         run: npm install -g @redocly/openapi-cli
       - name: Validate definitions
-        run: redocly lint Swagger/*.yaml
+        run: openapi lint Swagger/*.yaml
         env:
           NODE_NO_WARNINGS: 1
