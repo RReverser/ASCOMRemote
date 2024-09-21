@@ -4,9 +4,7 @@ jobs:
   validate_openapi:
     runs-on: ubuntu-latest
     name: Validate OpenAPI definitions
-    env:
-      NODE_OPTIONS: --no-deprecation # Redocly uses deprecated `punycode` package, but that shouldn't be an issue.
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Validate definitions
-        run: npx @redocly/cli lint Swagger/*.yaml
+        run: npx --no-deprecation @redocly/cli lint Swagger/*.yaml
