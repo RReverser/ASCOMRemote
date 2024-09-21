@@ -7,8 +7,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install OpenAPI validator
-        run: npm install -g @redocly/openapi-cli
+        run: npm install -g @redocly/cli
       - name: Validate definitions
-        run: openapi lint Swagger/*.yaml
+        run: redocly lint Swagger/*.yaml
         env:
           NODE_NO_WARNINGS: 1
