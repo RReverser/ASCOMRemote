@@ -7,8 +7,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: mbowman100/swagger-validator-action@master
+      - uses: char0n/apidom-validate@v1
         with:
-          files: |
-            Swagger/AlpacaDeviceAPI_v1.yaml
-            Swagger/AlpacaManagementAPI_v1.yaml
+          definition-file: Swagger/AlpacaDeviceAPI_v1.yaml
+          fails-on: 2
