@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Windows.Forms;
-using ASCOM.Utilities;
-using System.Text.RegularExpressions;
 using System.Drawing;
+using ASCOM.Com;
+using ASCOM.Common;
 
 namespace ASCOM.Remote
 {
@@ -17,7 +15,7 @@ namespace ASCOM.Remote
 
         #region Variables
 
-        private List<string> registeredDeviceTypes = new List<string>();
+        private readonly List<string> registeredDeviceTypes = new();
         // Create a dictionary to hold the current device instance numbers of every device type
         private Dictionary<string, int> deviceNumberIndexes;
 
@@ -26,21 +24,23 @@ namespace ASCOM.Remote
         private bool selectByMouse = false; // Variable to help select the whole contents of a numeric up-down box when tabbed into our selected by mouse
 
         // CORS data grid view presentation variables
-        private BindingSource bindingSource = new BindingSource(); // Binding source to connect the List of permitted origins to the data grid view control
+        private readonly BindingSource bindingSource = new(); // Binding source to connect the List of permitted origins to the data grid view control
 
-        private ToolStripMenuItem insertRow = new ToolStripMenuItem(); // Tool strip menu items for the context menu entries
-        private ToolStripMenuItem insertTenRows = new ToolStripMenuItem();
-        private ToolStripMenuItem deleteSelectedRows = new ToolStripMenuItem();
+        private readonly ToolStripMenuItem insertRow = new(); // Tool strip menu items for the context menu entries
+        private readonly ToolStripMenuItem insertTenRows = new();
+        private readonly ToolStripMenuItem deleteSelectedRows = new();
 
         private int currentRowIndex; // Variable to hold the current row index during row inserts
 
         private DataGridViewSelectedRowCollection selectedRows; // Collections to hold selected rows and cells for use when deleting origins
         private DataGridViewSelectedCellCollection selectedCells;
 
-        private List<StringValue> corsPermittedOriginsCopy = new List<StringValue>(); // Variable to hold a copy of the list of permitted origins so that it can be edited without affecting the master copy.
+        private readonly List<StringValue> corsPermittedOriginsCopy = new(); // Variable to hold a copy of the list of permitted origins so that it can be edited without affecting the master copy.
 
         private bool alreadyDisposed = false;
         private bool maxDevicesHasChanged;
+
+        private ConfigurationManager configurationManager;
 
         #endregion
 
@@ -50,7 +50,7 @@ namespace ASCOM.Remote
         {
             InitializeComponent();
 
-            HideTabControlBorders tabControl = new HideTabControlBorders(SetupTabControl); // Apply special drawing handler to the tab control in order to suppress white boarders that appear in the default control
+            HideTabControlBorders tabControl = new(SetupTabControl); // Apply special drawing handler to the tab control in order to suppress white boarders that appear in the default control
 
             addressList.Validating += AddressList_Validating; // Add event handlers for IP address validation events
             chkTrace.CheckedChanged += ChkTrace_CheckedChanged;
@@ -77,6 +77,9 @@ namespace ASCOM.Remote
             corsPermittedOriginsCopy = ServerForm.CorsPermittedOrigins.ToListStringValue();
             bindingSource.DataSource = corsPermittedOriginsCopy;
             DataGridCorsOrigins.DataSource = bindingSource;
+
+            // Add a handler for changes in the minimisation behaviour combo box
+            cmbMinimiseOptions.SelectedIndexChanged += CmbMinimiseOptions_SelectedIndexChanged;
         }
 
         private void Form_Load(object sender, EventArgs e)
@@ -111,6 +114,26 @@ namespace ASCOM.Remote
                 DateTimeLogRolloverTime.Value = ServerForm.RolloverTime;
                 SetRolloverTimeControlState();
                 ChkUseUtcTime.Checked = ServerForm.UseUtcTimeInLogs;
+                chkConfirmExit.Checked = ServerForm.ConfirmExit;
+                chkStartMinimised.Checked = ServerForm.StartMinimised;
+                ChkCheckForUpdates.Checked = ServerForm.CheckForUpdates;
+                ChkCheckForPreReleaseUpdates.Checked = ServerForm.CheckForPreReleaseUpdates;
+                chkSuppressConformationOnWindowsClose.Checked = ServerForm.SuppressConfirmationOnWindowsClose;
+                chkSuppressConformationOnWindowsClose.Enabled = chkConfirmExit.Checked;
+                ChkEnableReboot.Checked = ServerForm.EnableReboot;
+
+                // Initialise the application minimise options combo box
+                cmbMinimiseOptions.Items.AddRange(new object[] { ServerForm.MINIMISE_TO_SYSTEM_TRAY_KEY, ServerForm.MINIMISE_TO_TASK_BAR_KEY });
+                if (ServerForm.MinimiseToSystemTray) // Minimise to system tray
+                {
+                    cmbMinimiseOptions.SelectedItem = ServerForm.MINIMISE_TO_SYSTEM_TRAY_KEY;
+                    lblMinimisationBehaviour.Text = ServerForm.MINIMISE_TO_SYSTEM_TRAY_DESCRIPTION;
+                }
+                else // Minimise to task bar
+                {
+                    cmbMinimiseOptions.SelectedItem = ServerForm.MINIMISE_TO_TASK_BAR_KEY;
+                    lblMinimisationBehaviour.Text = ServerForm.MINIMISE_TO_TASK_BAR_DESCRIPTION;
+                }
 
                 // Set the IP v4 / v6 radio boxes
                 if (ServerForm.IpV4Enabled & ServerForm.IpV6Enabled) // Both IPv4 and v6 are enabled so set the "both" button
@@ -130,10 +153,10 @@ namespace ASCOM.Remote
                 ChkEnableCors_CheckedChanged(ChkEnableCors, new EventArgs()); // Fire the event handlers to ensure that the controls reflect the CORS enabled / disabled state
                 DataGridCorsOrigins_EnabledChanged(DataGridCorsOrigins, new EventArgs());
 
-                using (Profile profile = new Profile())
+                using (Profile profile = new())
                 {
                     // Populate the device types list
-                    foreach (string deviceType in profile.RegisteredDeviceTypes)
+                    foreach (string deviceType in Devices.DeviceTypeNames())
                     {
                         //ServerForm.LogMessage(0, 0, 0, "SetupForm Load", "Adding device type: " + deviceType);
                         registeredDeviceTypes.Add(deviceType); // Remember the device types on this system
@@ -242,8 +265,18 @@ namespace ASCOM.Remote
 
                 RecalculateDeviceNumbers();
 
-                // Add this event handler after the initial value has been set so that this doesn't trigger an even
+                // Add this event handler after the initial value has been set so that this doesn't trigger an event
                 this.NumMaxDevices.ValueChanged += new System.EventHandler(this.NumMaxDevices_ValueChanged);
+
+                // Set configuration handled by the configuration manager 
+                configurationManager = new(null);
+                ChkRunAs64BitApplication.Checked = configurationManager.Settings.RunAs64Bit;
+
+                // Enable or disable this option depending on whether or not we are running on a 64bit OS
+                if (Environment.Is64BitOperatingSystem)
+                    ChkRunAs64BitApplication.Enabled = true;
+                else
+                    ChkRunAs64BitApplication.Enabled = false;
 
             }
             catch (Exception ex)
@@ -557,6 +590,15 @@ namespace ASCOM.Remote
                 ServerForm.RolloverLogsEnabled = ChkRollOverLogs.Checked;
                 ServerForm.RolloverTime = DateTimeLogRolloverTime.Value;
                 ServerForm.UseUtcTimeInLogs = ChkUseUtcTime.Checked;
+                ServerForm.ConfirmExit = chkConfirmExit.Checked;
+                ServerForm.StartMinimised = chkStartMinimised.Checked;
+                ServerForm.CheckForUpdates = ChkCheckForUpdates.Checked;
+                ServerForm.CheckForPreReleaseUpdates = ChkCheckForPreReleaseUpdates.Checked;
+                ServerForm.SuppressConfirmationOnWindowsClose = chkSuppressConformationOnWindowsClose.Checked;
+                ServerForm.EnableReboot = ChkEnableReboot.Checked;
+
+                // Update the minimise to system tray value
+                ServerForm.MinimiseToSystemTray = (string)cmbMinimiseOptions.SelectedItem == ServerForm.MINIMISE_TO_SYSTEM_TRAY_KEY; // Expression evaluates to True if minimise to tray is selected, otherwise false
 
                 // Set the IP v4 and v6 variables as necessary
                 if (RadIpV4.Checked) // The IPv4 radio button is checked so set the IP v4 and IP v6 variables accordingly
@@ -605,6 +647,10 @@ namespace ASCOM.Remote
                 ServerForm.WriteProfile();
 
                 if (maxDevicesHasChanged) MessageBox.Show("The maximum number of devices has changed, please close and restart the Remote Server before adding further devices.", "Maximum Number of Devices", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+                // Save the configuration manager settings
+                configurationManager.Save();
+                configurationManager.Dispose();
 
                 this.DialogResult = DialogResult.OK;
                 this.Close();
@@ -661,6 +707,24 @@ namespace ASCOM.Remote
             SetRolloverTimeControlState();
         }
 
+        /// <summary>
+        /// Handler for changes in the minimisation combo box selected item
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CmbMinimiseOptions_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // Determine what to do based on the new selected item
+            if (cmbMinimiseOptions.SelectedItem.ToString() == ServerForm.MINIMISE_TO_SYSTEM_TRAY_KEY) // Minimise to system tray has been selected
+            {
+                lblMinimisationBehaviour.Text = ServerForm.MINIMISE_TO_SYSTEM_TRAY_DESCRIPTION; // Update the option description with the minimise to system tray description
+            }
+            else // Minimise to task bar has been selected
+            {
+                lblMinimisationBehaviour.Text = ServerForm.MINIMISE_TO_TASK_BAR_DESCRIPTION; // Update the option description with the minimise to task bar description 
+            }
+        }
+
         #endregion
 
         #region Utility methods
@@ -709,7 +773,7 @@ namespace ASCOM.Remote
             foreach (string deviceType in registeredDeviceTypes)
             {
                 ServerForm.LogMessage(0, 0, 0, "RecalculateDeviceNumbers", "Processing device type: " + deviceType);
-                SortedDictionary<string, ServedDevice> servedDevices = new SortedDictionary<string, ServedDevice>();
+                SortedDictionary<string, ServedDevice> servedDevices = new();
                 foreach (ServedDevice c in deviceList) //.Where(device => device.DeviceType == deviceType))
                 {
                     if (c.DeviceType == deviceType)
@@ -719,7 +783,7 @@ namespace ASCOM.Remote
                     }
                 }
                 ServerForm.LogMessage(0, 0, 0, "RecalculateDeviceNumbers", "Added served devices");
-                Dictionary<string, string> x = new Dictionary<string, string>();
+                Dictionary<string, string> x = new();
 
                 foreach (KeyValuePair<string, ServedDevice> item in servedDevices)
                 {
@@ -734,7 +798,7 @@ namespace ASCOM.Remote
             }
         }
 
-        public bool ValidIPAddress(string ipAddress, out string errorMessage)
+        public static bool ValidIPAddress(string ipAddress, out string errorMessage)
         {
             if (string.IsNullOrEmpty(ipAddress.Trim()))
             {
@@ -865,7 +929,7 @@ namespace ASCOM.Remote
                 selectedCells = dataGridViewControl.SelectedCells;
 
                 // Create the right click context menu contents
-                ContextMenuStrip strip = new ContextMenuStrip();
+                ContextMenuStrip strip = new();
                 strip.Items.Add(insertRow);
                 strip.Items.Add(insertTenRows);
 
@@ -880,5 +944,14 @@ namespace ASCOM.Remote
         }
         #endregion
 
+        private void ChkRunAs64BitApplication_CheckedChanged(object sender, EventArgs e)
+        {
+            configurationManager.Settings.RunAs64Bit = ((CheckBox)sender).Checked;
+        }
+
+        private void chkConfirmExit_CheckedChanged(object sender, EventArgs e)
+        {
+            chkSuppressConformationOnWindowsClose.Enabled = chkConfirmExit.Checked;
+        }
     }
 }

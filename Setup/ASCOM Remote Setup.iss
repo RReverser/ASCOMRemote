@@ -1,148 +1,147 @@
 ;
-; Script to install the ASCOM Remote Drivers and ASCOM Remote Server
+; Script to install the ASCOM Remote Server
 ;
 
-; Install direrctory names
-#define public RemoteClientDirectory "{app}\RemoteClients" ; Target directory where remote clients will be installed
-#define public RemoteServerDirectory "{commonpf}\ASCOM\Remote" ; Target directory where the remote server will be installed
+; Pre-define ISPP variables
+#define FileHandle
+#define FileLine
+#define MyInformationVersion
 
-; Install file names
-#define public RemoteClientLocalServerName "ASCOM.RemoteClientLocalServer" ; Remote client local server name
-#define public RemoteServerName "ASCOM.RemoteServer" ; Remote server application name
-#define public ASCOMStandardName "ASCOMStandard" ; ASCOMStandard support DLL name
-#define public SetNetworkPermissionsName "ASCOM.SetNetworkPermissions" ; Firewall configuration application name
-#define public DynamicRemoteClientsName "ASCOM.DynamicRemoteClients" ; Remote client management application name
-#define public RemoteClientBaseClassesName "ASCOM.RemoteClientBaseClasses" ; Remote client support DLL name
-#define public ASCOMRemoteDocumentationFileName "ASCOM Remote Installation and Configuration.pdf"; ASCOM Remote documentation file
+; Read the informational SEMVER version string from the file created by the build process
+#define FileHandle = FileOpen("..\Remote Server\bin\Debug\net8.0-windows\InstallerVersion.txt"); 
+#define FileLine = FileRead(FileHandle)
+#pragma message "Installer version number: " + FileLine
 
-; Specifiy debug or release build#define public BuildType "Debug" ; Type of build - Release or Debug
-;define public BuildType "Release" ; Type of build - Release or Debug
+; Save the SEMVER version for use in the installer filename
+#define MyInformationVersion FileLine
+
+; Close the SEMVER version file
+#if FileHandle
+  #expr FileClose(FileHandle)
+#endif
+
+; Create other ISPP installer variables 
+#define MyAppName "ASCOM Remote"
+#define MyAppPublisher "ASCOM Initiative (Peter Simpson)"
+#define MyAppPublisherURL "https://ascom-standards.org"
+#define MyAppSupportURL "URL=https://ascomtalk.groups.io/g/Developer/topics"
+#define MyAppUpdatesURL "https://github.com/ASCOMInitiative/ASCOMRemote/releases"
+#define MyAppExeName "RemoteServer.exe"
+#define MyAppAuthor "Peter Simpson"
+#define MyAppCopyright "Copyright © 2023 " + MyAppAuthor
+#define MyAppVersion GetVersionNumbersString("..\publish\x64\RemoteServer.exe")  ; Create version number variable
+#define ASCOMRemoteDocumentationFileName "ASCOM Remote Installation and Configuration.pdf"
+#define MyInstallFolder = "ASCOM\RemoteServer"
 
 [Setup]
 AppID={{0ee690ae-7927-4ee7-b851-f5877c077ff5}
-#define MyAppVer GetVersionNumbersString("..\Remote Server\bin\Release\ASCOM.RemoteServer.exe") ; define variable
-
-AppName=ASCOM Remote
-AppCopyright=Copyright © 2021 ASCOM Initiative
-AppPublisher=ASCOM Initiative
-AppPublisherURL=mailto:peter@peterandjill.co.uk
-AppSupportURL=https://ascomtalk.groups.io/g/Help/topics
-AppUpdatesURL=https://github.com/ASCOMInitiative/ASCOMRemote/releases
-#emit "AppVerName=ASCOM Remote " + MyAppVer + " ("+ BuildType + ")"
-#emit "AppVersion=" + MyAppVer
-Compression=lzma
-DefaultDirName="{commoncf}\ASCOM"
-DefaultGroupName="ASCOM Remote"
+AppCopyright={#MyAppCopyright}
+AppName={#MyAppName}
+AppPublisher={#MyAppPublisher}
+AppPublisherURL={#MyAppPublisherURL}
+AppSupportURL={#MyAppSupportURL}
+AppUpdatesURL={#MyAppUpdatesURL}
+AppVerName={#MyAppName}
+AppVersion={#MyAppVersion}
+ArchitecturesInstallIn64BitMode=x64
+Compression=lzma2/max
+DefaultDirName={autopf}\{#MyInstallFolder}
+DefaultGroupName={#MyAppName}
+DisableProgramGroupPage=yes
 DisableDirPage=yes
-DisableProgramGroupPage=no
-; Must be at least Windows 7 SP1 or later to run
 MinVersion=6.1SP1
-OutputDir="Build"
-#emit "OutputBaseFilename=ASCOMRemote(" + MyAppVer +")setup"
+OutputBaseFilename=ASCOMRemote({#MyInformationVersion})Setup
+OutputDir=.\Build
 PrivilegesRequired=admin
 SetupIconFile=ASCOM.ico
 SetupLogging=true
-SolidCompression=yes
-UninstallDisplayIcon={commonpf}\ASCOM\Remote\ASCOM.ico
-UninstallFilesDir="{commoncf}\ASCOM\Uninstall\Remote"
-UsePreviousAppDir=no
-UsePreviousGroup=no
-VersionInfoCompany=Peter Simpson
-VersionInfoCopyright=Peter Simpson
-VersionInfoDescription=ASCOM Remote
-VersionInfoProductName=ASCOM Remote
+SignToolRunMinimized=yes
+SignTool = SignASCOMRemote
+ShowLanguageDialog=auto
+SolidCompression=no
+UninstallDisplayName=
+UninstallDisplayIcon={app}\{#MyAppExeName}
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoCopyright={#MyAppAuthor}
+VersionInfoDescription= {#MyAppName}
+VersionInfoProductName={#MyAppName}
+VersionInfoProductVersion= {#MyAppVersion}
+VersionInfoVersion={#MyAppVersion}
 WizardImageFile=NewWizardImage.bmp
 WizardSmallImageFile=ASCOMLogo.bmp
-#emit "VersionInfoProductVersion=" + MyAppVer
-#emit "VersionInfoVersion=" + MyAppVer
-SignTool = SignASCOMRemote
+WizardStyle=modern
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
+Name: "armenian"; MessagesFile: "compiler:Languages\Armenian.isl"
+Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
+Name: "bulgarian"; MessagesFile: "compiler:Languages\Bulgarian.isl"
+Name: "catalan"; MessagesFile: "compiler:Languages\Catalan.isl"
+Name: "corsican"; MessagesFile: "compiler:Languages\Corsican.isl"
+Name: "czech"; MessagesFile: "compiler:Languages\Czech.isl"
+Name: "danish"; MessagesFile: "compiler:Languages\Danish.isl"
+Name: "dutch"; MessagesFile: "compiler:Languages\Dutch.isl"
+Name: "finnish"; MessagesFile: "compiler:Languages\Finnish.isl"
+Name: "french"; MessagesFile: "compiler:Languages\French.isl"
+Name: "german"; MessagesFile: "compiler:Languages\German.isl"
+Name: "hebrew"; MessagesFile: "compiler:Languages\Hebrew.isl"
+Name: "icelandic"; MessagesFile: "compiler:Languages\Icelandic.isl"
+Name: "italian"; MessagesFile: "compiler:Languages\Italian.isl"
+Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"
+Name: "norwegian"; MessagesFile: "compiler:Languages\Norwegian.isl"
+Name: "polish"; MessagesFile: "compiler:Languages\Polish.isl"
+Name: "portuguese"; MessagesFile: "compiler:Languages\Portuguese.isl"
+Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
+Name: "slovak"; MessagesFile: "compiler:Languages\Slovak.isl"
+Name: "slovenian"; MessagesFile: "compiler:Languages\Slovenian.isl"
+Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
+Name: "turkish"; MessagesFile: "compiler:Languages\Turkish.isl"
+Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 
 [Files]
-; LOCAL SERVER FILES
-Source: "..\Remote Client Local Server\bin\{#BuildType}\{#RemoteClientLocalServerName}.exe"; DestDir: "{#RemoteClientDirectory}"; Flags: ignoreversion; Components: ClientComponents
-Source: "..\Remote Client Local Server\bin\{#BuildType}\{#RemoteClientLocalServerName}.pdb"; DestDir: "{#RemoteClientDirectory}"; Flags: ignoreversion; Components: ClientComponents
+; 64bit OS - Install the 64bit app
+Source: "..\publish\remote\x64\*.exe"; DestDir: "{app}"; Flags: ignoreversion signonce; Check: Is64BitInstallMode 
+Source: "..\publish\remote\x64\*.dll"; DestDir: "{app}"; Flags: ignoreversion signonce; Check: Is64BitInstallMode
+Source: "..\publish\remote\x64\*"; DestDir: "{app}"; Flags: ignoreversion; Excludes:"*.exe,*.dll"; Check: Is64BitInstallMode
 
-; DYNAMIC CLIENT GENERATOR
-Source: "..\ASCOM.DynamicRemoteClients\bin\{#BuildType}\{#DynamicRemoteClientsName}.exe"; DestDir: "{#RemoteClientDirectory}"; Flags: ignoreversion; Components: ClientComponents
-Source: "..\ASCOM.DynamicRemoteClients\bin\{#BuildType}\{#DynamicRemoteClientsName}.pdb"; DestDir: "{#RemoteClientDirectory}"; Flags: ignoreversion; Components: ClientComponents
+; 64bit OS - Install the 32bit app
+Source: "..\publish\remote\x86\*.exe"; DestDir: "{app}\32bit"; Flags: ignoreversion signonce; Check: Is64BitInstallMode
+Source: "..\publish\remote\x86\*.dll"; DestDir: "{app}\32bit"; Flags: ignoreversion signonce; Check: Is64BitInstallMode
+Source: "..\publish\remote\x86\*"; DestDir: "{app}\32bit"; Flags: ignoreversion; Excludes:"*.exe,*.dll"; Check: Is64BitInstallMode
 
-; LOCAL SERVER AND DRIVER SUPPORT FILES
-Source: "..\Remote Client Device Base Classes\bin\{#BuildType}\{#RemoteClientBaseClassesName}.dll"; DestDir: "{#RemoteClientDirectory}"; Flags: ignoreversion; Components: ClientComponents
-Source: "..\Remote Client Device Base Classes\bin\{#BuildType}\{#RemoteClientBaseClassesName}.pdb"; DestDir: "{#RemoteClientDirectory}"; Flags: ignoreversion; Components: ClientComponents
-Source: "..\Remote Client Local Server\bin\{#BuildType}\RestSharp.dll"; DestDir: "{#RemoteClientDirectory}"; Flags: ignoreversion; Components: ClientComponents
-Source: "..\Remote Client Local Server\bin\{#BuildType}\Newtonsoft.Json.dll"; DestDir: "{#RemoteClientDirectory}"; Flags: ignoreversion; Components: ClientComponents
+; 32bit OS - Install the 32bit app
+Source: "..\publish\remote\x86\*.exe"; DestDir: "{app}"; Flags: ignoreversion signonce; Check: not Is64BitInstallMode
+Source: "..\publish\remote\x86\*.dll"; DestDir: "{app}"; Flags: ignoreversion signonce; Check: not Is64BitInstallMode
+Source: "..\publish\remote\x86\*"; DestDir: "{app}"; Flags: ignoreversion; Excludes:"*.exe,*.dll"; Check: not Is64BitInstallMode
 
-; REMOTE SERVER FILES
-Source: "..\Remote Server\bin\{#BuildType}\{#RemoteServerName}.exe"; DestDir: "{#RemoteServerDirectory}"; Flags: ignoreversion; Components: ServerComponents
-Source: "..\Remote Server\bin\{#BuildType}\{#RemoteServerName}.exe.config"; DestDir: "{#RemoteServerDirectory}"; Flags: ignoreversion; Components: ServerComponents
-Source: "..\Remote Server\bin\{#BuildType}\{#RemoteServerName}.pdb"; DestDir: "{#RemoteServerDirectory}"; Flags: ignoreversion; Components: ServerComponents
-Source: "..\Remote Server\ASCOMAlpacaMidRes.jpg"; DestDir: "{#RemoteServerDirectory}"; Flags: ignoreversion; Components: ServerComponents
-Source: "..\Remote Server\ascomicon.ico"; DestDir: "{#RemoteServerDirectory}"; Flags: ignoreversion; Components: ServerComponents
+;Source: "..\publish\permissions\x64\*.exe"; DestDir: "{app}\SetNetworkPermissions"; Flags: ignoreversion signonce; Check: Is64BitInstallMode 
+;Source: "..\publish\permissions\x64\*.dll"; DestDir: "{app}\SetNetworkPermissions"; Flags: ignoreversion signonce; Check: Is64BitInstallMode
+;Source: "..\publish\permissions\x64\*"; DestDir: "{app}\SetNetworkPermissions"; Flags: ignoreversion; Excludes:"*.exe,*.dll"; Check: Is64BitInstallMode
 
-; REMOTE SERVER SUPPORT FILES
-Source: "..\Remote Server\bin\{#BuildType}\Newtonsoft.Json.dll"; DestDir: "{#RemoteServerDirectory}"; Flags: ignoreversion; Components: ServerComponents
-Source: "..\Remote Server\bin\{#BuildType}\ASCOM.Common.dll"; DestDir: "{#RemoteServerDirectory}"; Flags: ignoreversion; Components: ServerComponents
-
-; SET NETWORK PERMISSIONS FILES
-Source: "..\SetNetworkPermissions\bin\{#BuildType}\{#SetNetworkPermissionsName}.exe"; DestDir: "{#RemoteServerDirectory}"; Flags: ignoreversion; Components: ClientComponents ServerComponents 
-Source: "..\SetNetworkPermissions\bin\{#BuildType}\{#SetNetworkPermissionsName}.pdb"; DestDir: "{#RemoteServerDirectory}"; Flags: ignoreversion; Components: ClientComponents ServerComponents
-
-; SET NETWORK PERMISSIONS SUPPORT FILES
-Source: "..\SetNetworkPermissions\bin\{#BuildType}\WindowsFirewallHelper.dll"; DestDir: "{#RemoteServerDirectory}"; Flags: ignoreversion; Components: ClientComponents ServerComponents
-Source: "..\SetNetworkPermissions\bin\{#BuildType}\CommandLine.dll"; DestDir: "{#RemoteServerDirectory}"; Flags: ignoreversion; Components: ClientComponents ServerComponents
+; Install the 32bit exe into the 32bit program files folder structure
+Source: "..\publish\permissions\x86\*.exe"; DestDir: "{autopf32}\{#MyInstallFolder}\SetNetworkPermissions"; Flags: ignoreversion signonce;
+;Source: "..\publish\permissions\x86\*.dll"; DestDir: "{autopf32}\{#MyInstallFolder}\SetNetworkPermissions"; Flags: ignoreversion signonce;
+Source: "..\publish\permissions\x86\*"; DestDir: "{autopf32}\{#MyInstallFolder}\SetNetworkPermissions"; Flags: ignoreversion; Excludes:"*.exe,*.dll";
 
 ; DOCUMENTATION
-Source: "..\Documentation\{#ASCOMRemoteDocumentationFileName}"; DestDir: "{#RemoteServerDirectory}"; Flags: ignoreversion
-
-; INSTALLER SUPPORT FILES
-Source: "ASCOM.ico"; DestDir: "{#RemoteServerDirectory}"; Flags: ignoreversion
-
-[Run]
-Filename: "{#RemoteClientDirectory}\{#RemoteClientLocalServerName}.exe"; Parameters: "/regserver"; Components: ClientComponents; Flags: runhidden
-Filename: "{#RemoteClientDirectory}\{#DynamicRemoteClientsName}.exe"; Parameters: "/installersetup"; Components: ClientComponents; Flags: runhidden
-Filename: "{#RemoteServerDirectory}\{#SetNetworkPermissionsName}.exe"; Parameters: "--localserverpath ""{#RemoteClientDirectory}\{#RemoteClientLocalServerName}.exe"""; Components: ClientComponents; Flags: runhidden
-
-[UninstallRun]
-Filename: "{#RemoteClientDirectory}\{#RemoteClientLocalServerName}.exe"; Parameters: "/unregserver"; Components: ClientComponents; Flags: runhidden; RunOnceId: "UnregisterClients"
-
-[Registry]
+Source: "..\Documentation\{#ASCOMRemoteDocumentationFileName}"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\ASCOM Remote Documentation"; Filename: "{#RemoteServerDirectory}\{#ASCOMRemoteDocumentationFileName}";
-Name: "{group}\Remote Server"; Filename: "{#RemoteServerDirectory}\{#RemoteServerName}.exe"; Components: ServerComponents
-Name: "{group}\Remote Client Configuration"; Filename: "{#RemoteClientDirectory}\{#DynamicRemoteClientsName}.exe"; Components: ClientComponents
+Name: "{autoprograms}\ASCOM Remote Server"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\ASCOM.ico"
+Name: "{autodesktop}\Remote Server"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; IconFilename: "{app}\ASCOM.ico"
+[Tasks]
+Name: desktopicon; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
-[Components]
-Name: "ServerComponents"; Description: "Remote Server"; Flags: disablenouninstallwarning
-Name: "ClientComponents"; Description: "Remote Clients (Please use the Platform Dynamic Clients instead)"; Flags: disablenouninstallwarning
+[Run]
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent unchecked
 
-[Types]
-Name: "Custom"; Description: "Custom"; Flags: iscustom
-
-[PreCompile]
-Name: "..\BuildRemote.cmd"; Flags: cmdprompt
+[UninstallDelete]
+Name: "{app}\32bit"; Type: dirifempty
+Name: "{app}"; Type: dirifempty
 
 [Code]
 const
-   REQUIRED_PLATFORM_VERSION = 6.5; // Set this to the minimum required ASCOM Platform version for this application
-   REQUIRED_DOTNET_VERSION = 'v4.8';   // Set this to the minimum required Microsoft .NET Framework version for this application
-
-var
-  LightMsgPage: TOutputMsgWizardPage;
-  
-procedure InitializeWizard;
-begin
-  { Create the pages }
-
-  LightMsgPage := CreateOutputMsgPage(wpWelcome,
-   'ASCOM Remote Clients - Please Note', 'The Remote Clients were superseded in Platform 6.5',
-   'The Remote Clients in this installer can be uninstalled but can no longer be selected for installation.' #13#13 +
-   'In place of Remote Clients, please use Dynamic Clients that can be created through the Platform Chooser.' #13#13 + 
-   'Any Remote Clients you have created will continue to function but do not support the new interfaces and features introduced in Platform 6.5.');
-end;
+ REQUIRED_PLATFORM_VERSION = 6.5; // Set this to the minimum required ASCOM Platform version for this application
 
 //
 // Function to return the ASCOM Platform's version number as a double.
@@ -164,104 +163,34 @@ begin
 end;
 
 //
-// Function to determine whether the specified version of the .NET Framework is installed
-//
-// Thanks to Christoph Nahr (http://kynosarges.org/DotNetVersion.html) for this code
-function IsDotNetDetected(version: string; service: cardinal): boolean;
-// version -- Specify one of these strings for the required .NET Framework version:
-//    'v1.1'          .NET Framework 1.1                     'v2.0'          .NET Framework 2.0  
-//    'v3.0'          .NET Framework 3.0                     'v3.5'          .NET Framework 3.5
-//    'v4\Client'     .NET Framework 4.0 Client Profile      'v4\Full'       .NET Framework 4.0 Full Installation  
-//    'v4.5'          .NET Framework 4.5                     'v4.5.1'        .NET Framework 4.5.1
-//    'v4.5.2'        .NET Framework 4.5.2                   'v4.6'          .NET Framework 4.6
-//    'v4.6.1'        .NET Framework 4.6.1                   'v4.6.2'        .NET Framework 4.6.2
-//    'v4.7'          .NET Framework 4.7                     'v4.7.1'        .NET Framework 4.7.1
-//    'v4.7.2'        .NET Framework 4.7.2                   'v4.8           .NET Framework 4.8
-//
-// service -- Specify any non-negative integer for the required service pack level:
-//    0               No service packs required
-//    1, 2, etc.      Service pack 1, 2, etc. required (usually zero for more recent versions)
-var
-    key, versionKey: string;
-    install, release, serviceCount, versionRelease: cardinal;
-    success: boolean;
-begin
-    versionKey := version;
-    versionRelease := 0;
-
-    // .NET 1.1 and 2.0 embed release number in version key
-    if version = 'v1.1' then begin
-        versionKey := 'v1.1.4322';
-    end else if version = 'v2.0' then begin
-        versionKey := 'v2.0.50727';
-    end
-
-    // .NET 4.5 and newer install as update to .NET 4.0 Full
-    else if Pos('v4.', version) = 1 then begin
-        versionKey := 'v4\Full';
-        case version of
-          'v4.5':   versionRelease := 378389;
-          'v4.5.1': versionRelease := 378675; // 378758 on Windows 8 and older
-          'v4.5.2': versionRelease := 379893;
-          'v4.6':   versionRelease := 393295; // 393297 on Windows 8.1 and older
-          'v4.6.1': versionRelease := 394254; // 394271 before Win10 November Update
-          'v4.6.2': versionRelease := 394802; // 394806 before Win10 Anniversary Update
-          'v4.7':   versionRelease := 460798; // 460805 before Win10 Creators Update
-          'v4.7.1': versionRelease := 461308; // 461310 before Win10 Fall Creators Update
-          'v4.7.2': versionRelease := 461808; // 461814 before Win10 April 2018 Update
-          'v4.8':   versionRelease := 528040;
-        end;
-    end;
-
-    // installation key group for all .NET versions
-    key := 'SOFTWARE\Microsoft\NET Framework Setup\NDP\' + versionKey;
-
-    // .NET 3.0 uses value InstallSuccess in subkey Setup
-    if Pos('v3.0', version) = 1 then begin
-        success := RegQueryDWordValue(HKLM, key + '\Setup', 'InstallSuccess', install);
-    end else begin
-        success := RegQueryDWordValue(HKLM, key, 'Install', install);
-    end;
-
-    // .NET 4.0 and newer use value Servicing instead of SP
-    if Pos('v4', version) = 1 then begin
-        success := success and RegQueryDWordValue(HKLM, key, 'Servicing', serviceCount);
-    end else begin
-        success := success and RegQueryDWordValue(HKLM, key, 'SP', serviceCount);
-    end;
-
-    // .NET 4.5 and newer use additional value Release
-    if versionRelease > 0 then begin
-        success := success and RegQueryDWordValue(HKLM, key, 'Release', release);
-        success := success and (release >= versionRelease);
-    end;
-
-    result := success and (install = 1) and (serviceCount >= service);
-end;
-
-//
 //  Before the installer UI appears, verify that the required ASCOM Platform and .NET Framework versions are installed.
 //
 function InitializeSetup(): Boolean;
 var
    PlatformVersionNumber : double;
+
 begin
-   Result := FALSE;  // Assume failure so the installer UI will not appear
-   PlatformVersionNumber := PlatformVersion(); // Get the installed Platform version as a double
-   If PlatformVersionNumber >= REQUIRED_PLATFORM_VERSION then	// Test whether we have the minimum required Platform
-      // We do have a suitable Platform installed
-      if IsDotNetDetected(REQUIRED_DOTNET_VERSION, 0) then  // Test whether we have the minimum required .NET Framework version
-         // We do have a suitable .NET Framework installed so return TRUE to make the installer UI appear
-         Result := TRUE 
-      else
-         // No or insufficient .NET Framework is installed
-         MsgBox('ASCOM Remote requires Microsoft .NET Framework ' + REQUIRED_DOTNET_VERSION + ' or higher' #13#13 'Please use Windows Update to install the latest .NET version and then re-run this setup program.', mbCriticalError, MB_OK) 
-   else
-         // No or insufficient ASCOM Platform is installed
-         if PlatformVersionNumber = 0.0 then
-         MsgBox('The ASCOM Platform is not installed.' #13#13 'Please install Platform ' + Format('%3.1f', [REQUIRED_PLATFORM_VERSION]) + ' or later from http://www.ascom-standards.org', mbCriticalError, MB_OK)
-      else 
-         MsgBox('This version of ASCOM Remote requires ASCOM Platform ' + Format('%3.1f', [REQUIRED_PLATFORM_VERSION]) + ' or later, but Platform '+ Format('%3.1f', [PlatformVersionNumber]) + ' is installed.' #13#13 'Please install the latest Platform before continuing; you will find it at https://www.ascom-standards.org', mbCriticalError, MB_OK);
+  Result := FALSE;  // Assume failure so the installer UI will not appear
+  
+  // Get the installed Platform version as a double
+  PlatformVersionNumber := PlatformVersion();
+  
+  // Test whether we have the minimum required Platform
+  If PlatformVersionNumber >= REQUIRED_PLATFORM_VERSION then begin
+
+    // We do have a suitable Platform installed
+    Result := TRUE;
+  end
+  else begin // No or insufficient ASCOM Platform is installed
+
+    // Test whether a Platform is installed at all
+    if PlatformVersionNumber = 0.0 then begin // No platform is installed
+      MsgBox('The ASCOM Platform is not installed.' #13#13 'Please install Platform ' + Format('%3.1f', [REQUIRED_PLATFORM_VERSION]) + ' or later from http://www.ascom-standards.org', mbCriticalError, MB_OK)
+    end
+    else begin // A Platform below the minimim requirement is installed
+      MsgBox('This version of ASCOM Remote requires ASCOM Platform ' + Format('%3.1f', [REQUIRED_PLATFORM_VERSION]) + ' or later, but Platform '+ Format('%3.1f', [PlatformVersionNumber]) + ' is installed.' #13#13 'Please install the latest Platform before continuing; you will find it at https://www.ascom-standards.org', mbCriticalError, MB_OK);
+    end;
+  end;
 end;
 
 // Code to enable the installer to uninstall previous versions of itself when a new version is installed
@@ -270,34 +199,29 @@ var
   ResultCode: Integer;
   UninstallExe: String;
   UninstallRegistry: String;
-begin
-  if (CurStep = ssInstall) then // Install step has started
-	begin
-      // Create the correct registry location name, which is based on the AppId
-      UninstallRegistry := ExpandConstant('Software\Microsoft\Windows\CurrentVersion\Uninstall\{#SetupSetting("AppId")}' + '_is1');
-      // Check whether an extry exists
-      if RegQueryStringValue(HKLM, UninstallRegistry, 'UninstallString', UninstallExe) then
-        begin // Entry exists and previous version is installed so run its uninstaller quietly after informing the user
-          Exec(RemoveQuotes(UninstallExe), ' /SILENT', '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode);
-          sleep(100);    //Give enough time for the install screen to be repainted before continuing
-        end
-   end;
-end;
 
-procedure CurPageChanged(CurPageID: Integer);
 begin
-  if CurPageID = wpSelectComponents then
-    begin
-      //WizardForm.ComponentsList.Checked[1] := False;
-      if not WizardForm.ComponentsList.Checked[1] then WizardForm.ComponentsList.ItemEnabled[1] := False;
+  if (CurStep = ssInstall) then	begin
+
+    // Create the correct registry location name, which is based on the AppId
+    UninstallRegistry := ExpandConstant('Software\Microsoft\Windows\CurrentVersion\Uninstall\{#SetupSetting("AppId")}' + '_is1');
+
+    // Check whether the previous install was the original 32bit only version
+    if Is64BitInstallMode then begin
+
+      // Check whether an extry exists in the 32bit registry
+      if RegQueryStringValue(HKLM32, UninstallRegistry, 'UninstallString', UninstallExe) then begin
+
+        // 32bit setup entry exists so run its uninstaller quietly after informing the user
+        Exec(RemoveQuotes(UninstallExe), ' /SILENT', '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode);
+      end;
     end;
-end;
-
-// Function to determine whether .NET 4.7 is installed
-function IsDotNet4Point7Installed: Boolean;
-begin
-  if IsDotNetDetected('v4.7', 0) then  // Test whether the .NET version 4.7 is installed
-    Result := TRUE     // .NET 4.7 or later is installed so return TRUE
-  else
-    Result := FALSE;   // A .NET version earlier than 4.7 is installed so return FALSE
+    
+    // Check whether the previous install was a new version either (both 32bit  and 64bit installs)
+    if RegQueryStringValue(HKLM, UninstallRegistry, 'UninstallString', UninstallExe) then begin
+    
+        // 64bit entry exists so run its uninstaller quietly after informing the user
+        Exec(RemoveQuotes(UninstallExe), ' /SILENT', '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode);
+      end;
+    end;
 end;

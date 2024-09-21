@@ -1,11 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Threading;
 
@@ -18,8 +12,8 @@ namespace ASCOM.Remote
     public partial class DriverHostForm : Form
     {
         string deviceKey;
-        ServerForm restServer;
-        KeyValuePair<string, ConfiguredDevice> configuredDevice;
+        readonly ServerForm restServer;
+        readonly KeyValuePair<string, ConfiguredDevice> configuredDevice;
 
         /// <summary>
         /// Main constructor for the form. Save state variables to use when creating, using and destroying the driver
@@ -35,7 +29,7 @@ namespace ASCOM.Remote
 
             this.FormClosed += DriverHostForm_FormClosed;
             this.Load += DriverHostForm_Load;
-            ServerForm.LogMessage(0, 0, 0, "DriverHostForm", "Form has been instantiated on thread: " + Thread.CurrentThread.ManagedThreadId);
+            ServerForm.LogMessage(0, 0, 0, "DriverHostForm", "Form has been instantiated on thread: " + Environment.CurrentManagedThreadId);
         }
 
         /// <summary>
@@ -47,9 +41,9 @@ namespace ASCOM.Remote
         {
             deviceKey = string.Format("{0}/{1}", configuredDevice.Value.DeviceType.ToLowerInvariant(), configuredDevice.Value.DeviceNumber);
 
-            ServerForm.LogMessage(0, 0, 0, "DriverHostForm", $"Creating driver {deviceKey} ({configuredDevice.Key}) on thread {Thread.CurrentThread.ManagedThreadId} with apartment state {Thread.CurrentThread.GetApartmentState()}");
+            ServerForm.LogMessage(0, 0, 0, "DriverHostForm", $"Creating driver {deviceKey} ({configuredDevice.Key}) on thread {Environment.CurrentManagedThreadId} with apartment state {Thread.CurrentThread.GetApartmentState()}");
             restServer.CreateInstance(configuredDevice); // Create the driver on this thread
-            ServerForm.LogMessage(0, 0, 0, "DriverHostForm", string.Format("Created driver {0} ({1}) on thread {2}", deviceKey, configuredDevice.Key, Thread.CurrentThread.ManagedThreadId));
+            ServerForm.LogMessage(0, 0, 0, "DriverHostForm", string.Format("Created driver {0} ({1}) on thread {2}", deviceKey, configuredDevice.Key, Environment.CurrentManagedThreadId));
 
             ServerForm.ActiveObjects[deviceKey].DriverHostForm = this; // Save the driver host form reference so that calls can be made to the driver
         }
@@ -76,12 +70,12 @@ namespace ASCOM.Remote
                 Application.DoEvents();
 
                 // Process the command on a separate thread allowing other requests to be handled concurrently through this thread, which is running the Windows message loop
-                Thread driverThread = new Thread(new ParameterizedThreadStart(ProcessCommand)); // Create a new thread on which to make the call to the COM driver
-                if (ServerForm.DebugTraceState) ServerForm.LogMessage1(requestData, requestData.Elements[ServerForm.URL_ELEMENT_METHOD], $"DriverCommand has received a command for {deviceKey} on FORM thread {Thread.CurrentThread.ManagedThreadId} Apartment state: {Thread.CurrentThread.GetApartmentState()} Is background: {Thread.CurrentThread.IsBackground} Is thread pool thread: {Thread.CurrentThread.IsThreadPoolThread}");
+                Thread driverThread = new(new ParameterizedThreadStart(ProcessCommand)); // Create a new thread on which to make the call to the COM driver
+                if (ServerForm.DebugTraceState) ServerForm.LogMessage1(requestData, requestData.Elements[SharedConstants.URL_ELEMENT_METHOD], $"DriverCommand has received a command for {deviceKey} on FORM thread {Environment.CurrentManagedThreadId} Apartment state: {Thread.CurrentThread.GetApartmentState()} Is background: {Thread.CurrentThread.IsBackground} Is thread pool thread: {Thread.CurrentThread.IsThreadPoolThread}");
 
                 driverThread.Start(requestData); // Start the thread supplying the request data to the method
 
-                if (ServerForm.DebugTraceState) ServerForm.LogMessage1(requestData, requestData.Elements[ServerForm.URL_ELEMENT_METHOD], $"DriverCommand has started the command for {deviceKey} on FORM thread { Thread.CurrentThread.ManagedThreadId}");
+                if (ServerForm.DebugTraceState) ServerForm.LogMessage1(requestData, requestData.Elements[SharedConstants.URL_ELEMENT_METHOD], $"DriverCommand has started the command for {deviceKey} on FORM thread {Environment.CurrentManagedThreadId}");
                 return driverThread; // Return the thread so that the calling method can wait for it to complete and so that this thread can start waiting for the next command
             }
             catch (Exception ex) // Something serious has gone wrong with the ASCOM Remote server itself so report this to the user
@@ -102,9 +96,9 @@ namespace ASCOM.Remote
         /// </summary>
         public void DestroyDriver()
         {
-            ServerForm.LogMessage(0, 0, 0, "DriverHostForm", "Destroy driver method has been called on thread: " + Thread.CurrentThread.ManagedThreadId);
+            ServerForm.LogMessage(0, 0, 0, "DriverHostForm", "Destroy driver method has been called on thread: " + Environment.CurrentManagedThreadId);
             ServerForm.DestroyDriver(deviceKey);
-            ServerForm.LogMessage(0, 0, 0, "DriverHostForm", "Destroy driver method completed on thread: " + Thread.CurrentThread.ManagedThreadId);
+            ServerForm.LogMessage(0, 0, 0, "DriverHostForm", "Destroy driver method completed on thread: " + Environment.CurrentManagedThreadId);
             Application.ExitThread(); // Close all forms on this thread, which will also terminate the thread itself
         }
     }

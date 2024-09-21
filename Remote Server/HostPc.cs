@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -50,7 +49,7 @@ namespace ASCOM.Remote
         private static List<IPAddress> GetIpAddresses(AddressFamily addressFamily)
         {
             // Initialise the IPv4 and IPv6 address lists
-            List<IPAddress> ipAddresses = new List<IPAddress>();
+            List<IPAddress> ipAddresses = new();
 
             // Get an array of all network interfaces on this host
             NetworkInterface[] adapters = NetworkInterface.GetAllNetworkInterfaces();

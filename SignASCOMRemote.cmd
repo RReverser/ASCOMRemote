@@ -1,60 +1,58 @@
-@echo on
-@echo Setting up variables
-call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x86
 
-@echo Parameter: %1
+"C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x86\signtool" sign /a /fd SHA256 /n "Peter Simpson" /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 %1
 
-echo "%1" | findstr /C:"uninst" 1>nul
+exit 0
 
-if errorlevel 1 (
-	echo got errorlevel one -  pattern missing
-) ELSE (
-	echo got errorlevel zero - found pattern
 
-	echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Client Local Server\bin\Debug\ASCOM.RemoteClientLocalServer.exe"
-	echo signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Client Local Server\bin\Debug\ASCOM.RemoteClientLocalServer.exe"
-	echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\ASCOM.DynamicRemoteClients\bin\Debug\ASCOM.DynamicRemoteClients.exe"
-	echo signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\ASCOM.DynamicRemoteClients\bin\Debug\ASCOM.DynamicRemoteClients.exe"
-	echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Client Device Base Classes\bin\Debug\ASCOM.RemoteClientBaseClasses.dll"
-	echo signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Client Device Base Classes\bin\Debug\ASCOM.RemoteClientBaseClasses.dll"
-	echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Client Local Server\bin\Debug\RestSharp.dll"
-	echo signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Client Local Server\bin\Debug\RestSharp.dll"
-	signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Server\bin\Debug\ASCOM.RemoteServer.exe"
-	signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Server\bin\Debug\ASCOM.RemoteServer.exe"
-	signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Server\bin\Debug\ASCOM.Common.dll"
-	signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Server\bin\Debug\ASCOM.Common.dll"
-	signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Debug\ASCOM.SetNetworkPermissions.exe"
-	signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Debug\ASCOM.SetNetworkPermissions.exe"
-	signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Debug\WindowsFirewallHelper.dll"
-	signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Debug\WindowsFirewallHelper.dll"
-	signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Debug\CommandLine.dll"
-	signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Debug\CommandLine.dll"
-	signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Debug\NetStandard.dll"
-	signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Debug\NetStandard.dll"
+rem @echo on
+rem @echo Setting up variables
+rem call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" x86
+rem @echo " " 
+rem @echo Parameter: %1
 
-	echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Client Local Server\bin\Release\ASCOM.RemoteClientLocalServer.exe"
-	echo signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Client Local Server\bin\Release\ASCOM.RemoteClientLocalServer.exe"
-	echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\ASCOM.DynamicRemoteClients\bin\Release\ASCOM.DynamicRemoteClients.exe"
-	echo signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\ASCOM.DynamicRemoteClients\bin\Release\ASCOM.DynamicRemoteClients.exe"
-	echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Client Device Base Classes\bin\Release\ASCOM.RemoteClientBaseClasses.dll"
-	echo signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Client Device Base Classes\bin\Release\ASCOM.RemoteClientBaseClasses.dll"
-	echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Client Local Server\bin\Release\RestSharp.dll"
-	echo signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Client Local Server\bin\Release\RestSharp.dll"
-	signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Server\bin\Release\ASCOM.RemoteServer.exe"
-	signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Server\bin\Release\ASCOM.RemoteServer.exe"
-	signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Server\bin\Release\ASCOM.Common.dll"
-	signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Server\bin\Release\ASCOM.Common.dll"
-	signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Release\ASCOM.SetNetworkPermissions.exe"
-	signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Release\ASCOM.SetNetworkPermissions.exe"
-	signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Release\WindowsFirewallHelper.dll"
-	signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Release\WindowsFirewallHelper.dll"
-	signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Release\CommandLine.dll"
-	signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Release\CommandLine.dll"
-	signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Release\NetStandard.dll"
-	signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Release\NetStandard.dll"
+rem echo "%1" | findstr /C:"uninst" 1>nul
+
+rem We only need to sign these executables once, so do this when the uninstaller is created.
+rem if errorlevel 1 (
+	rem echo Signing main installer - Not signing other executables 
+rem ) ELSE (
+	rem echo Signing uninstaller - Signing other exectutables too.
+
+	rem echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Server\bin\Debug\ASCOM.RemoteServer.exe"
+	rem echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Server\bin\Debug\ASCOM.Common.dll"
+	rem echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Debug\ASCOM.SetNetworkPermissions.exe"
+	rem echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Debug\WindowsFirewallHelper.dll"
+	rem echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Debug\CommandLine.dll"
+	rem echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Debug\NetStandard.dll"
+
+	rem signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Server\bin\Debug\ASCOM.RemoteServer.exe"
+	rem signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Server\bin\Debug\ASCOM.Common.dll"
+	rem signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Debug\ASCOM.SetNetworkPermissions.exe"
+	rem signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Debug\WindowsFirewallHelper.dll"
+	rem signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Debug\CommandLine.dll"
+	rem signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Debug\NetStandard.dll"
+
+	rem echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Server\bin\Release\ASCOM.RemoteServer.exe"
+	rem echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Server\bin\Release\ASCOM.Common.dll"
+	rem echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Release\ASCOM.SetNetworkPermissions.exe"
+	rem echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Release\WindowsFirewallHelper.dll"
+	rem echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Release\CommandLine.dll"
+	rem echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Release\NetStandard.dll"
+
+	rem signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Server\bin\Release\ASCOM.RemoteServer.exe"
+	rem signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\Remote Server\bin\Release\ASCOM.Common.dll"
+	rem signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Release\ASCOM.SetNetworkPermissions.exe"
+	rem signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Release\WindowsFirewallHelper.dll"
+	rem signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Release\CommandLine.dll"
+	rem signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "J:\ASCOMRemote\SetNetworkPermissions\bin\Release\NetStandard.dll"
 
 )
 
-echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 %1
-signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 %1
-signtool sign /a /as /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 %1
+rem Wait for 1 second to allow Inno to release a file handle, which prevents signtool from working correctly.
+rem timeout 1
+
+rem Sign the installer or uninstaller whose filename was supplied as the first parameter
+rem echo signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 %1
+rem signtool sign /a /fd SHA256 /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 %1
+
+rem pause
